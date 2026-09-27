@@ -175,7 +175,7 @@ h2{font-family:Georgia,serif;color:var(--gold2);font-size:32px;text-shadow:0 2px
 <div id="actePNJ" class="section"><h3>👥 PNJ</h3><div class="card"><p class="small">Section vide — les PNJ de l'acte seront ajoutés ici.</p></div></div>
 <div id="acteQuetes" class="section"><h3>📜 Quêtes</h3><div class="card"><p class="small">Section vide — les quêtes de l'acte seront ajoutées ici.</p></div></div>
 <div id="acteCombats" class="section"><h3>⚔️ Combats</h3>
-<div class="card"><h3>⚓ Kaelen Shade</h3><p><b>Rôle :</b> Contre-Amiral de la Marine.</p><p><b>Pierre Divine :</b> Nekrion — <b>Pouvoir :</b> Invocation.</p><p>Commandant de trois âmes invoquées : le Gardien, le Médecin et le Prédateur.</p><button class="link" onclick="openFiche('kaelen_shade')">⚔️ Ouvrir la fiche de combat</button></div>
+<div class="card image-card"><img class="thumb tall" src="images/acte/pnj/kaelen_shade.webp" alt="Kaelen Shade — combat" onclick="openFiche('kaelen_shade');openImage(this.src,'Kaelen Shade — combat')"><h3>⚓ Kaelen Shade</h3><p><b>Rôle :</b> Contre-Amiral de la Marine.</p><p><b>Pierre Divine :</b> Nekrion — <b>Pouvoir :</b> Invocation.</p><p>Commandant de trois âmes invoquées : le Gardien, le Médecin et le Prédateur.</p><button class="link" onclick="openFiche('kaelen_shade')">⚔️ Ouvrir la fiche de combat</button></div>
 </div><div id="acteLieux" class="section"><h3>🗺️ Lieux</h3><div class="card"><p class="small">Section vide — les lieux de l'acte seront ajoutés ici.</p></div></div>
 <div id="acteScenes" class="section"><h3>🎬 Scènes</h3><div class="card"><p class="small">Section vide — les scènes de l'acte seront ajoutées ici.</p></div></div>
 <div id="acteSons" class="section"><h3>🔊 Sons</h3><div class="card"><p class="small">Section vide — les sons propres à l'acte seront ajoutés ici.</p></div></div>
@@ -465,6 +465,7 @@ function toggleAct(id,btn){const nav=document.getElementById(id+'Nav');if(!nav)r
 function toggleMenuGroup(navId,btn){const nav=document.getElementById(navId);if(!nav)return;const isOpen=nav.classList.toggle('open');btn.classList.toggle('collapsed',!isOpen)}
 function showActPart(sectionId,btn,navId,targetId){document.querySelectorAll('main section').forEach(x=>x.classList.add('hidden'));const target=document.getElementById(sectionId);if(target)target.classList.remove('hidden');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.subnav button').forEach(x=>x.classList.remove('subactive'));if(btn)btn.classList.add('subactive');const anchor=document.getElementById(targetId);if(anchor)window.scrollTo({top:Math.max(0,anchor.getBoundingClientRect().top+window.scrollY-25),behavior:'smooth'})}
 function openFiche(id){zoom=1;const html=typeof renderFicheContent==='function'?renderFicheContent(id):'';const box=document.getElementById('fiche');if(box)box.innerHTML=html||'<p>Aucune fiche n’est définie pour cet élément.</p>';const modal=document.getElementById('modal');if(modal)modal.classList.add('open');const ficheBox=document.getElementById('ficheBox');if(ficheBox)ficheBox.scrollTop=0;if(typeof applyZoom==='function')applyZoom()}
+function renderFicheContent(id){return renderFichePV(id)}
 const fiches={
 kaelen_shade:`<h1>Kaelen Shade</h1><div class="subtitle">Contre-Amiral de la Marine — Pierre Divine de Nekrion — Pouvoir : Invocation</div><div class="stats"><div><b>Classe d'armure</b> 18</div><div><b>Points de vie</b> 60</div><div><b>Vitesse</b> 9 m</div><div><b>Pierre Divine</b> Nekrion</div><div><b>Rôle</b> Invocateur</div><div><b>Difficulté</b> Boss — Acte 4</div></div><section><h2>⚠️ Mécanique principale</h2><p><b>Protection des trois âmes.</b> Tant que les <b>3 invocations sont vivantes</b>, Kaelen ne subit que <b>1 dégât par attaque ou sort</b>.</p><p>Lorsque les trois invocations sont mortes, cette protection disparaît immédiatement.</p><p><b>🎯 Priorité :</b> éliminer les trois âmes pour pouvoir réellement blesser Kaelen.</p></section><section><h2>Actions de Kaelen</h2><h3>Trait de Nekrion.</h3><p><i>Attaque à distance :</i> +8 pour toucher, portée 24 m. <span class="combat-attack-roll"><button onclick="rollInlineAttack(8,this)">🎲 Toucher</button><span class="combat-attack-result"></span></span> <b>Touché :</b> 3d8 nécrotiques. <span class="inline-dice"><button onclick="rollInlineDice(3,8,0,this)">🎲 Dégâts</button><span class="inline-dice-result"></span></span></p><h3>Décharge des morts — Recharge 5–6.</h3><p>Rayon de 3 m autour de Kaelen : Dextérité DD 16. <span class="combat-save-controls"><button onclick="setCombatSaveResult('fail',this)">🔴 Échec</button><button onclick="setCombatSaveResult('success',this)">🟢 Réussite</button><span class="combat-save-result"></span></span> Échec : 4d8 nécrotiques. Réussite : moitié des dégâts. <span class="inline-dice"><button onclick="rollInlineDice(4,8,0,this)">🎲 Dégâts</button><span class="inline-dice-result"></span></span></p><h3>Commandement de Nekrion — Action bonus.</h3><p>Une invocation de Kaelen effectue immédiatement une action.</p></section><section><h2>👻 Invocation 1 — Nekrath — Gardien</h2><div class="stats"><div><b>PV</b> 80</div><div><b>CA</b> 18</div><div><b>Vitesse</b> 3 m</div><div><b>Taille</b> Grande</div><div><b>Rôle</b> Tank / Protection</div><div><b>Type</b> Âme invoquée</div></div><h3>Absorption spectrale.</h3><p>Absorbe les dégâts destinés aux autres invocations situées à <b>6 m ou moins</b>.</p><h3>Présence oppressante.</h3><p>JS de Sagesse DD 16 ou désavantage à la prochaine attaque.</p><h3>Frappe accablante.</h3><p>+6 pour toucher. <span class="combat-attack-roll"><button onclick="rollInlineAttack(6,this)">🎲 Toucher</button><span class="combat-attack-result"></span></span> <b>Touché :</b> 1d6 + 3 contondants. Force DD 16 ou repoussée/ralentie.</p><span class="inline-dice"><button onclick="rollInlineDice(1,6,3,this)">🎲 Dégâts</button><span class="inline-dice-result"></span></span></section><section><h2>💚 Invocation 2 — Nekrialis — Médecin</h2><div class="stats"><div><b>PV</b> 55</div><div><b>CA</b> 15</div><div><b>Vitesse</b> 12 m</div><div><b>Rôle</b> Soigneur</div><div><b>Attaque</b> Aucune</div><div><b>Portée</b> 18 m</div></div><h3>Soin spectral.</h3><p>Une invocation alliée à portée de 18 m récupère <b>3d8 + 5 PV</b>. <span class="inline-dice"><button onclick="rollInlineDice(3,8,5,this)">🎲 Soin</button><span class="inline-dice-result"></span></span></p><p><b>⚠️ Le Médecin ne peut pas soigner Kaelen.</b></p><h3>Grand soin — Recharge 5–6.</h3><p>Une invocation alliée récupère <b>4d8 + 5 PV</b>. <span class="inline-dice"><button onclick="rollInlineDice(4,8,5,this)">🎲 Grand soin</button><span class="inline-dice-result"></span></span></p></section><section><h2>🩸 Invocation 3 — Nekroth — Prédateur</h2><div class="stats"><div><b>PV</b> 70</div><div><b>CA</b> 16</div><div><b>Vitesse</b> 9 m</div><div><b>Rôle</b> DPS</div><div><b>Dégâts</b> Nécrotiques</div><div><b>Type</b> Âme invoquée</div></div><h3>Griffes.</h3><p><b>Deux attaques</b> : +8 pour toucher chacune. <span class="combat-attack-roll"><button onclick="rollInlineAttack(8,this)">🎲 Griffe 1</button><span class="combat-attack-result"></span></span> et <span class="combat-attack-roll"><button onclick="rollInlineAttack(8,this)">🎲 Griffe 2</button><span class="combat-attack-result"></span></span>. <b>Touché :</b> 2d8 + 4 nécrotiques par griffe. <span class="inline-dice"><button onclick="rollInlineDice(2,8,4,this)">🎲 Dégâts</button><span class="inline-dice-result"></span></span></p><h3>Projection d'âme.</h3><p>Portée 12 m : +8 pour toucher. <span class="combat-attack-roll"><button onclick="rollInlineAttack(8,this)">🎲 Toucher</button><span class="combat-attack-result"></span></span> <b>Touché :</b> 2d8 + 4 nécrotiques. <span class="inline-dice"><button onclick="rollInlineDice(2,8,4,this)">🎲 Dégâts</button><span class="inline-dice-result"></span></span></p><h3>Double griffes.</h3><p>Si les <b>2 Griffes touchent la même cible</b>, JS de Constitution DD 16 ou <b>2d8 nécrotiques supplémentaires</b>. <span class="inline-dice"><button onclick="rollInlineDice(2,8,0,this)">🎲 Dégâts supplémentaires</button><span class="inline-dice-result"></span></span></p></section><section><h2>🧠 Tactique de Kaelen</h2><p><b>Nekrath :</b> protège les autres invocations.</p><p><b>Nekrialis :</b> reste à distance et soigne les invocations blessées.</p><p><b>Nekroth :</b> attaque les cibles vulnérables.</p><p><b>Kaelen :</b> reste à distance et commande ses âmes.</p></section><section><h2>⚔️ Déroulement conseillé</h2><ol><li>Les trois invocations commencent le combat aux côtés de Kaelen.</li><li>Le Gardien protège le Médecin et le Prédateur.</li><li>Le Médecin maintient les invocations en vie.</li><li>Le Prédateur met la pression sur les joueurs.</li><li>Kaelen reste à distance et utilise Commandement de Nekrion.</li><li>Quand les 3 invocations sont mortes, retire la protection de Kaelen.</li></ol></section>`
 };
@@ -473,10 +474,86 @@ let doubleClawState=JSON.parse(localStorage.getItem('theLastHeartDoubleClawState
 function saveDoubleClawState(){localStorage.setItem('theLastHeartDoubleClawState',JSON.stringify(doubleClawState))}
 
 function refreshOpenFichePV(id){const f=document.getElementById('fiche');if(!f)return;const panel=f.querySelector('.fiche-combat');if(!panel)return;const tmp=document.createElement('div');tmp.innerHTML=renderFichePV(id);const old=panel;old.replaceWith(tmp.firstElementChild);applyZoom()}
-function applyFicheDamage(id,i){const e=combatState.enemies.filter(x=>x.ficheId===id)[i];if(!e)return;const input=document.getElementById(`ficheDamage_${id}_${i}`);let dmg=Math.max(0,Math.floor(Number(input?.value)||0));const actualDamage=Math.min(dmg,Math.max(0,Number(e.current)||0));e.current=Math.max(0,e.current-dmg);if(actualDamage>0)registerCombatEvent(id,'damage',actualDamage);if(input)input.value='';saveCombatPV();refreshOpenFichePV(id)}
+function applyFicheDamage(id,i){const e=combatState.enemies.filter(x=>x.ficheId===id)[i];if(!e)return;const input=document.getElementById(`ficheDamage_${id}_${i}`);let dmg=Math.max(0,Math.floor(Number(input?.value)||0));if(id==='kaelen_shade'&&e.ficheIndex===0){const invocations=combatState.enemies.filter(x=>x.ficheId===id&&x.ficheIndex>0);const protectionActive=invocations.length===3&&invocations.every(x=>Number(x.current)>0);if(protectionActive&&dmg>0)dmg=1;}const actualDamage=Math.min(dmg,Math.max(0,Number(e.current)||0));e.current=Math.max(0,e.current-dmg);if(actualDamage>0)registerCombatEvent(id,'damage',actualDamage);if(input)input.value='';saveCombatPV();refreshOpenFichePV(id)}
 function healFicheEnemy(id,i){const e=combatState.enemies.filter(x=>x.ficheId===id)[i];if(!e)return;const input=document.getElementById(`ficheDamage_${id}_${i}`);const amount=Math.max(0,Math.floor(Number(input?.value)||0));e.current=Math.min(e.max,e.current+amount);if(input)input.value='';saveCombatPV();refreshOpenFichePV(id)}
 function resetFicheEnemy(id,i){const e=combatState.enemies.filter(x=>x.ficheId===id)[i];if(!e)return;e.current=e.max;saveCombatPV();refreshOpenFichePV(id)}
+function setZoom(v){zoom=v;applyZoom()}
+function applyZoom(){document.getElementById('fiche').style.transform=`scale(${zoom})`;document.getElementById('fiche').style.transformOrigin='top center';document.getElementById('fiche').style.width=`${100/zoom}%`}
+function closeFiche(){document.getElementById('modal').classList.remove('open')}
+function openImage(src,title,isBook=false){currentImage=src;currentImageTitle=title||'';currentIsBook=isBook;currentBookIndex=isBook?bookPages.findIndex(p=>p.src===src):-1;openTV(src,currentImageTitle,currentIsBook)}
+const OWLBEAR_COMBAT_URL='https://www.owlbear.rodeo/room/uWR1mVfk2a6u/The%20Nutty%20Shore';
+let owlbearWindow=null;
+function openOwlbearCombat(){
+  try{
+    if(owlbearWindow && !owlbearWindow.closed){
+      owlbearWindow.focus();
+      return true;
+    }
+    // Ouvre d'abord une fenêtre vide dans le geste utilisateur.
+    // Edge/Chrome acceptent ensuite la navigation vers Owlbear sans la considérer
+    // comme une nouvelle popup.
+    owlbearWindow=window.open('about:blank','theLastHeartOwlbear');
+    if(!owlbearWindow){
+      alert("Owlbear est bloqué par le navigateur. Autorise les fenêtres pop-up pour cette application puis réessaie.");
+      return false;
+    }
+    owlbearWindow.location.href=OWLBEAR_COMBAT_URL;
+    try{owlbearWindow.focus()}catch(e){}
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+function openMobImage(src,title,ficheId){
+  // Owlbear est lancé immédiatement depuis le clic sur le mob.
+  openOwlbearCombat();
+  openFiche(ficheId);
+  openTV(src,title);
+}
+function showBookPage(index){if(!currentIsBook)return;currentBookIndex=(index+bookPages.length)%bookPages.length;const p=bookPages[currentBookIndex];currentImage=p.src;currentImageTitle=p.title;document.getElementById('bigImage').src=p.src;document.getElementById('bigImage').alt=p.title}
+function bookPrev(){showBookPage(currentBookIndex-1)}
+function bookNext(){showBookPage(currentBookIndex+1)}
+function closeImage(){document.getElementById('imageModal').classList.remove('open');currentIsBook=false;document.getElementById('bookPrev').style.display='none';document.getElementById('bookNext').style.display='none'}
+let tvWindow=null;
+let tvReadyAt=0;
+const TV_READY_TIMEOUT=6000;
+const tvChannel=('BroadcastChannel' in window)?new BroadcastChannel('theLastHeartTV'):null;
 
+function sendTVMessage(data){
+  if(tvChannel) tvChannel.postMessage(data);
+  if(tvWindow && !tvWindow.closed){
+    try{tvWindow.postMessage(data,'*')}catch(e){}
+    try{tvWindow.focus()}catch(e){}
+    return true;
+  }
+  return Date.now()-tvReadyAt<TV_READY_TIMEOUT;
+}
+if(tvChannel){
+  tvChannel.addEventListener('message',e=>{
+    if(e.data?.type==='theLastHeartTVReady') tvReadyAt=Date.now();
+  });
+}
+setInterval(()=>{if(tvWindow?.closed)tvWindow=null;},1000);
+function openCurrentTV(){if(currentImage)openTV(currentImage,currentImageTitle,currentIsBook)}
+function openTV(src,title,isBook=false){
+  const tvSrc=src.startsWith('images/')?'../'+src:src;
+  const data={type:'theLastHeartTV',src:tvSrc,title:title||'',isBook:!!isBook};
+  if(sendTVMessage(data))return;
+  const url='tv/viewer.html?src='+encodeURIComponent(tvSrc)+'&title='+encodeURIComponent(title||'')+(isBook?'&book=1':'');
+  tvWindow=window.open(url,'theLastHeartTV');
+  if(!tvWindow){alert('Le navigateur bloque la fenêtre TV. Autorise les fenêtres pop-up pour cet outil.');return}
+  tvWindow.focus();
+}
+function openTVPage(page,title){
+  const data={type:'theLastHeartTVPage',page,title:title||''};
+  if(sendTVMessage(data))return;
+  const url='tv/viewer.html?page='+encodeURIComponent(page)+'&pageTitle='+encodeURIComponent(title||'');
+  tvWindow=window.open(url,'theLastHeartTV');
+  if(!tvWindow){alert('Le navigateur bloque la fenêtre TV. Autorise les fenêtres pop-up pour cet outil.');return}
+  tvWindow.focus();
+}
+function filterCards(input,gridId){const q=input.value.toLowerCase();document.querySelectorAll('#'+gridId+' .filterable').forEach(card=>{card.style.display=card.innerText.toLowerCase().includes(q)?'':'none'})}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('modal').classList.contains('open'))closeFiche();else closeImage()}if(e.key==='0'&&document.getElementById('modal').classList.contains('open'))setZoom(1);if(document.getElementById('imageModal').classList.contains('open')&&currentIsBook){if(e.key==='ArrowLeft')bookPrev();if(e.key==='ArrowRight')bookNext()}})
 function rollInlineAttack(modifier,button){
  const id=currentOpenFicheId,targetIndex=getCombatTarget(id),out=button?.parentElement?.querySelector('.combat-attack-result');
  if(targetIndex===null){if(out){out.className='combat-attack-result attack-none';out.innerHTML='<b>⚠️ Sélectionne d’abord un joueur cible</b>'}return;}
@@ -486,7 +563,13 @@ function rollInlineAttack(modifier,button){
  if(out){out.className='combat-attack-result '+(hit?'attack-hit':'attack-miss');out.innerHTML='<b>'+total+' vs CA '+ca+' — '+(hit?'🟢 RÉUSSITE':'🔴 RATÉ')+'</b> <span class="inline-dice-detail">('+roll+(modifier?' '+(modifier>0?'+ ':'− ')+Math.abs(modifier):'')+')</span>'+ (roll===20?' <b>💥 Critique !</b>':roll===1?' <b>❌ Échec critique</b>':'');out.dataset.hit=hit?'1':'0';}
  combatAttackState[id]={targetIndex,hit,roll,total,ca};saveCombatAttackState();
  const attackLabel=String(button?.textContent||'').toLowerCase();
- 
+ if(id==='kaelen_shade'&&(attackLabel.includes('griffe 1')||attackLabel.includes('griffe 2'))){
+   const key=id+'_'+targetIndex;
+   const state=doubleClawState[key]||{targetIndex,griffe1:false,griffe2:false};
+   state.targetIndex=targetIndex;
+   if(attackLabel.includes('griffe 1'))state.griffe1=hit; else state.griffe2=hit;
+   doubleClawState[key]=state;saveDoubleClawState();
+ }
 }
 function rollInlineDice(count,sides,modifier,button){
  const buttonLabel=String(button?.textContent||'').toLowerCase();
@@ -496,7 +579,7 @@ function rollInlineDice(count,sides,modifier,button){
    const cleanKey=id+'_'+getCombatTarget(id);
    const dc=doubleClawState[cleanKey];
    const out=button?.parentElement?.querySelector('.inline-dice-result');
-   if(id!==''||!dc||dc.targetIndex===null||!dc.griffe1||!dc.griffe2){
+   if(id!=='kaelen_shade'||!dc||dc.targetIndex===null||!dc.griffe1||!dc.griffe2){
      if(out)out.innerHTML='<b>⚠️ Les 2 Griffes doivent avoir touché la même cible.</b>';
      return;
    }
@@ -581,7 +664,6 @@ function rollCombatDice(id){
  const result=document.getElementById('combatDiceResult_'+id);if(result)result.innerHTML='<b>'+diceFormula(count,sides,modifier)+'</b> → <strong>'+total+'</strong><div class="small">'+detail+'</div>';
 }
 // ===== Lanceur de dés =====
-
 let diceHistory=JSON.parse(localStorage.getItem('theLastHeartDiceHistory')||'[]');
 function diceFormula(count,sides,modifier){return `${count}d${sides}${modifier>0?' + '+modifier:modifier<0?' - '+Math.abs(modifier):''}`}
 function setDicePreset(count,sides,modifier){document.getElementById('diceCount').value=count;document.getElementById('diceType').value=sides;document.getElementById('diceModifier').value=modifier;rollDice()}
@@ -610,11 +692,10 @@ function renderDiceHistory(){
 function clearDiceHistory(){if(!diceHistory.length)return;if(!confirm('Effacer tout l’historique des jets ?'))return;diceHistory=[];localStorage.removeItem('theLastHeartDiceHistory');renderDiceHistory()}
 function initDice(){['diceCount','diceModifier'].forEach(id=>document.getElementById(id)?.addEventListener('keydown',e=>{if(e.key==='Enter')rollDice()}));renderDiceHistory()}
 initDice();
-
-const potionIconMap={"Potion de soins":"images/outils-mj/potions/soins.png","Potion de soins supérieure":"images/outils-mj/potions/soins_superieure.png","Potion de soins suprême":"images/outils-mj/potions/soins_supreme.png","Potion de respiration aquatique":"images/outils-mj/potions/respiration_aquatique.png","Potion d\'escalade":"images/outils-mj/potions/escalade.png","Potion de croissance":"images/outils-mj/potions/croissance.png","Potion de résistance":"images/outils-mj/potions/resistance.png","Potion d\'amitié animale":"images/outils-mj/potions/amitie_animale.png","Potion de souffle de feu":"images/outils-mj/potions/souffle_de_feu.png","Potion d\'héroïsme":"images/outils-mj/potions/heroisme.png","Potion de forme gazeuse":"images/outils-mj/potions/forme_gazeuse.png","Potion de clairvoyance":"images/outils-mj/potions/clairvoyance.png","Potion de lecture des pensées":"images/outils-mj/potions/lecture_des_pensees.png","Potion d\'invisibilité":"images/outils-mj/potions/invisibilite.png","Potion d\'invulnérabilité":"images/outils-mj/potions/invulnerabilite.png","Potion de vitesse":"images/outils-mj/potions/vitesse.png","Potion de vitalité":"images/outils-mj/potions/vitalite.png"};
+const potionIconMap={"Potion de soins":"images/potions/soins.png","Potion de soins supérieure":"images/potions/soins_superieure.png","Potion de soins suprême":"images/potions/soins_supreme.png","Potion de respiration aquatique":"images/potions/respiration_aquatique.png","Potion d\'escalade":"images/potions/escalade.png","Potion de croissance":"images/potions/croissance.png","Potion de résistance":"images/potions/resistance.png","Potion d\'amitié animale":"images/potions/amitie_animale.png","Potion de souffle de feu":"images/potions/souffle_de_feu.png","Potion d\'héroïsme":"images/potions/heroisme.png","Potion de forme gazeuse":"images/potions/forme_gazeuse.png","Potion de clairvoyance":"images/potions/clairvoyance.png","Potion de lecture des pensées":"images/potions/lecture_des_pensees.png","Potion d\'invisibilité":"images/potions/invisibilite.png","Potion d\'invulnérabilité":"images/potions/invulnerabilite.png","Potion de vitesse":"images/potions/vitesse.png","Potion de vitalité":"images/potions/vitalite.png"};
 function getPotionIcon(name){ return potionIconMap[String(name)] || ''; }
 const equipmentIconMap={
- 'Kit d’escalade':'images/outils-mj/equipement/kit_escalade.png','Corde en soie (15 m)':'images/outils-mj/equipement/corde_soie.png','Grappin':'images/outils-mj/equipement/grappin.png','Matériel de pêche':'images/outils-mj/equipement/materiel_peche.png','Outils de navigateur':'images/outils-mj/equipement/outils_navigateur.png','Longue-vue':'images/outils-mj/equipement/longue_vue.png','Kit de soins':'images/outils-mj/equipement/kit_soins.png','Menottes':'images/outils-mj/equipement/menottes.png','Pied-de-biche':'images/outils-mj/equipement/pied_de_biche.png','Bloc et palan':'images/outils-mj/equipement/bloc_et_palan.png','Pitons ×10':'images/outils-mj/equipement/pitons.png','Miroir en acier':'images/outils-mj/equipement/miroir_acier.png','Lanterne à capuchon':'images/outils-mj/equipement/lanterne_capuchon.png','Lanterne à faisceau':'images/outils-mj/equipement/lanterne_faisceau.png','Perche (3 m)':'images/outils-mj/equipement/perche.png','Outre':'images/outils-mj/equipement/outre.png','Tente pour deux personnes':'images/outils-mj/equipement/tente_2_personnes.png','Sac à dos':'images/outils-mj/equipement/sac_a_dos.png','Sacoche':'images/outils-mj/equipement/sacoche.png','Carte maritime':'images/outils-mj/equipement/carte_maritime.png'};
+ 'Kit d’escalade':'images/equipement/kit_escalade.png','Corde en soie (15 m)':'images/equipement/corde_soie.png','Grappin':'images/equipement/grappin.png','Matériel de pêche':'images/equipement/materiel_peche.png','Outils de navigateur':'images/equipement/outils_navigateur.png','Longue-vue':'images/equipement/longue_vue.png','Kit de soins':'images/equipement/kit_soins.png','Menottes':'images/equipement/menottes.png','Pied-de-biche':'images/equipement/pied_de_biche.png','Bloc et palan':'images/equipement/bloc_et_palan.png','Pitons ×10':'images/equipement/pitons.png','Miroir en acier':'images/equipement/miroir_acier.png','Lanterne à capuchon':'images/equipement/lanterne_capuchon.png','Lanterne à faisceau':'images/equipement/lanterne_faisceau.png','Perche (3 m)':'images/equipement/perche.png','Outre':'images/equipement/outre.png','Tente pour deux personnes':'images/equipement/tente_2_personnes.png','Sac à dos':'images/equipement/sac_a_dos.png','Sacoche':'images/equipement/sacoche.png','Carte maritime':'images/equipement/carte_maritime.png'};
 function getEquipmentIcon(name){ return equipmentIconMap[String(name)] || ''; }
 const lootItemIcons={};
 function getItemIcon(name){ return lootItemIcons[String(name)] || getPotionIcon(name) || getEquipmentIcon(name) || ''; }
@@ -651,7 +732,7 @@ function exportCampaignSave(){
  const save={
    format:'The Last Heart — Sauvegarde de campagne',
    version:1,
-   acte:'base',
+   acte:4,
    savedAt:new Date().toISOString(),
    players:playerInventories.map(p=>({
      name:p.name,
@@ -712,12 +793,29 @@ function importCampaignSave(event){
 function renderInventories(){
  const grid=document.getElementById('playerInventoryGrid'); if(!grid)return;
  grid.innerHTML=playerInventories.map((p,i)=>`<div class="player-inventory-card">
- <div class="player-name-row"><img class="player-avatar" src="${['images/outils-mj/joueurs/finn.png','images/outils-mj/joueurs/akio.png','images/outils-mj/joueurs/sylas.png','images/outils-mj/joueurs/syvens.png'][i]}" alt="${escapeHTML(p.name)}"><h3>${escapeHTML(p.name)}</h3></div>
+ <div class="player-name-row"><img class="player-avatar" src="${['images/joueurs/finn.png','images/joueurs/akio.png','images/joueurs/sylas.png','images/joueurs/syvens.png'][i]}" alt="${escapeHTML(p.name)}"><h3>${escapeHTML(p.name)}</h3></div>
  <div class="po-row"><span>💰</span><b>PO :</b><input type="number" min="0" step="0.01" value="${p.po}" oninput="setPlayerPO(${i},this.value)"></div>
- <div class="inventory-list">${p.items.length?p.items.map((it,j)=>`<div class="inventory-item"><div class="inventory-item-main"><span class="inventory-item-name">${getItemIcon(it.name)?`<img class="potion-icon-small" src="${getItemIcon(it.name)}" alt="">`:'🎒 '}${escapeHTML(it.name)}</span><div class="inventory-qty-row"><button class="link" onclick="changeItemQty(${i},${j},-1)">−</button><input class="inventory-qty" type="number" min="0" step="1" value="${Number(it.qty)||0}" onchange="setItemQty(${i},${j},this.value)"><button class="link" onclick="changeItemQty(${i},${j},1)">+</button></div>${inventoryEffectHTML(it.name)}</div><span class="inventory-actions"><button class="link danger" onclick="removeItem(${i},${j})" title="Supprimer l'objet">🗑️</button></span></div>`).join(''):'<div class="inventory-empty">Aucun objet.</div>'}</div>
+ <div class="inventory-list">${p.items.length?p.items.map((it,j)=>`<div class="inventory-item"><div class="inventory-item-main"><span class="inventory-item-name">${getItemIcon(it.name)?`<img class="potion-icon-small" src="${getItemIcon(it.name)}" alt="">`:'🎒 '}${escapeHTML(it.name)}</span><div class="inventory-qty-row"><button class="link" onclick="changeItemQty(${i},${j},-1)">−</button><input class="inventory-qty" type="number" min="0" step="1" value="${Number(it.qty)||0}" onchange="setItemQty(${i},${j},this.value)"><button class="link" onclick="changeItemQty(${i},${j},1)">+</button></div>${inventoryEffectHTML(it.name)}</div><span class="inventory-actions">${getLootValue(it.name)!==null?`<button class="link loot-sell" onclick="sellLoot(${i},${j})" title="Vendre 1 unité">💰</button>`:`<button class="link danger" onclick="removeItem(${i},${j})" title="Supprimer l'objet">🗑️</button>`}</span></div>`).join(''):'<div class="inventory-empty">Aucun objet.</div>'}</div>
  <div class="inventory-add"><input id="invItem_${i}" placeholder="Nom de l'objet" onkeydown="if(event.key==='Enter')addItem(${i})"><button class="link" onclick="addItem(${i})">➕ Ajouter</button></div>
  </div>`).join('');
 
+}
+function getLootValue(name){
+ const key=String(name).toLowerCase();
+ for(const group of Object.values(combatLoot||{})){
+   const item=group.items.find(x=>String(x.name).toLowerCase()===key);
+   if(item)return Number(item.value)||0;
+ }
+ return null;
+}
+function sellLoot(i,j){
+ const it=playerInventories[i]?.items[j];if(!it)return;
+ const value=getLootValue(it.name);if(value===null)return;
+ const qty=Number(it.qty)||0;if(qty<=0)return;
+ playerInventories[i].po=Math.round(((Number(playerInventories[i].po)||0)+value)*100)/100;
+ it.qty=qty-1;
+ if(it.qty<=0)playerInventories[i].items.splice(j,1);
+ saveInventories();renderInventories();
 }
 function setPlayerPO(i,v){const n=Math.max(0,Math.round((Number(v)||0)*100)/100);playerInventories[i].po=n;saveInventories();}
 function addItem(i){const input=document.getElementById('invItem_'+i);if(!input)return;const name=input.value.trim();if(!name)return;const existing=playerInventories[i].items.find(x=>x.name.toLowerCase()===name.toLowerCase());if(existing)existing.qty++;else playerInventories[i].items.push({name,qty:1});input.value='';saveInventories();renderInventories();}
@@ -861,7 +959,12 @@ renderPortShop();
 
 function openPortTV(){openTVPage('boutique_port_tv.html','Port')}
 
-
+// ===== Combat PV =====
+const combatPresets={
+kaelen_shade:{name:'Kaelen Shade — Contre-Amiral de la Marine',enemies:[['Kaelen Shade',60,18],['Nekrath — Gardien',80,18],['Nekrialis — Médecin',55,15],['Nekroth — Prédateur',70,16]]}
+};
+let combatState=JSON.parse(localStorage.getItem('theLastHeartCombatPV')||'null')||{name:'',enemies:[]};
+function saveCombatPV(){localStorage.setItem('theLastHeartCombatPV',JSON.stringify(combatState))}
 const combatPlayersKey='theLastHeartCombatPlayers';
 const combatPlayerNames=['Fïnn','Akio','Sylas','Syvens'];
 let combatPlayers=JSON.parse(localStorage.getItem(combatPlayersKey)||'null');
@@ -989,7 +1092,6 @@ function renderCombatTargetBanner(id){
  const p=combatPlayers[index],ca=p.ca===''?'CA ?':Number(p.ca);
  return '<div class="combat-target-banner">🎯 Cible actuelle : <strong>'+escapeHTML(p.name)+'</strong> · 🛡️ <strong>'+escapeHTML(ca)+'</strong> CA · ❤️ '+(p.current===''?'—':p.current)+' PV · 🛡️ '+(Number(p.temp)||0)+' PV temporaires</div>';
 }
-
 const initiativePlayers=['Fïnn','Akio','Sylas','Syvens'];
 const initiativeStorageKey='theLastHeartInitiative';
 let initiativeState=JSON.parse(localStorage.getItem(initiativeStorageKey)||'null')||{};
