@@ -173,7 +173,51 @@ h2{font-family:Georgia,serif;color:var(--gold2);font-size:32px;text-shadow:0 2px
 <h2>📖 ACTE</h2>
 <div id="acteResume" class="card"><h3>📖 Résumé de l'acte</h3><p class="small">Aucun contenu d'acte n'est encore renseigné.</p></div>
 <div id="actePNJ" class="section"><h3>👥 PNJ</h3><div class="card"><p class="small">Section vide — les PNJ de l'acte seront ajoutés ici.</p></div></div>
-<div id="acteQuetes" class="section"><h3>📜 Quêtes</h3><div class="card"><p class="small">Section vide — les quêtes de l'acte seront ajoutées ici.</p></div></div>
+<div id="acteQuetes" class="section"><h3>📜 Quêtes</h3>
+<div class="card">
+<h3>🧩 Énigme</h3>
+<p>Une mystérieuse salle de la Nécropole d'Aether met les aventuriers face à plusieurs inscriptions et symboles. Les indices doivent être observés et interprétés pour trouver la bonne combinaison.</p>
+<div class="grid">
+<div class="card image-card">
+<img class="thumb" src="images/acte/quetes/salle_dalles_sol.png" alt="Énigme — sol de la salle" onclick="openImage(this.src,'Énigme — Sol de la salle')">
+<h3>🪨 Sol de la salle</h3>
+<p class="small">Vue des dalles et des symboles présents au sol.</p>
+</div>
+<div class="card image-card">
+<img class="thumb" src="images/acte/quetes/salle_dalles_mur_1.png" alt="Énigme — mur 1" onclick="openImage(this.src,'Énigme — Mur 1')">
+<h3>🧩 Mur 1</h3>
+<p class="small">Première inscription à examiner.</p>
+</div>
+<div class="card image-card">
+<img class="thumb" src="images/acte/quetes/salle_dalles_mur_1_sans_reflet.png" alt="Énigme — mur 1 sans reflet" onclick="openImage(this.src,'Énigme — Mur 1 sans reflet')">
+<h3>🔎 Mur 1 — sans reflet</h3>
+<p class="small">Version sans reflet, utile pour lire les symboles plus clairement.</p>
+</div>
+<div class="card image-card">
+<img class="thumb" src="images/acte/quetes/salle_dalles_mur_2.png" alt="Énigme — mur 2" onclick="openImage(this.src,'Énigme — Mur 2')">
+<h3>🧩 Mur 2</h3>
+<p class="small">Deuxième inscription à examiner.</p>
+</div>
+<div class="card image-card">
+<img class="thumb" src="images/acte/quetes/salle_dalles_mur_3.png" alt="Énigme — mur 3" onclick="openImage(this.src,'Énigme — Mur 3')">
+<h3>🧩 Mur 3</h3>
+<p class="small">Troisième inscription à examiner.</p>
+</div>
+</div>
+<div class="card" style="margin-top:15px">
+<h3>☠️ Danger</h3>
+<p><b>1d6 dégâts par minute</b> tant que les joueurs restent dans la salle.</p>
+</div>
+<details class="card" style="margin-top:15px">
+<summary style="cursor:pointer;color:#e0bd79;font-weight:bold">🔐 Solution — MJ uniquement</summary>
+<div style="margin-top:12px">
+<p>Les symboles correspondent aux éléments suivants :</p>
+<p><b>Épine → Rose</b><br><b>Étoile → Soleil</b><br><b>Pleure → Œil</b><br><b>Sable → Sablier</b></p>
+<p><b>Combinaison finale :</b> Rose · Soleil · Œil · Sablier</p>
+</div>
+</details>
+</div>
+</div>
 <div id="acteCombats" class="section"><h3>⚔️ Combats</h3>
 <div class="card image-card"><img class="thumb tall" src="images/acte/pnj/kaelen_shade.webp" alt="Kaelen Shade — combat" onclick="openFiche('kaelen_shade');openImage(this.src,'Kaelen Shade — combat')"><h3>⚓ Kaelen Shade</h3><p><b>Rôle :</b> Contre-Amiral de la Marine.</p><p><b>Pierre Divine :</b> Nekrion — <b>Pouvoir :</b> Invocation.</p><p>Commandant de trois âmes invoquées : le Gardien, le Médecin et le Prédateur.</p><button class="link" onclick="openFiche('kaelen_shade')">⚔️ Ouvrir la fiche de combat</button></div>
 </div><div id="acteLieux" class="section"><h3>🗺️ Lieux</h3><div class="card"><p class="small">Section vide — les lieux de l'acte seront ajoutés ici.</p></div></div>
