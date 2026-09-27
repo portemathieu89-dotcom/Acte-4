@@ -13,8 +13,12 @@ html,body{margin:0;width:100%;height:100%;background:#000;overflow:hidden;font-f
 button{background:#333;color:#fff;border:0;border-radius:6px;padding:8px 12px;cursor:pointer}
 #title{position:fixed;bottom:15px;left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,.65);padding:8px 14px;border-radius:7px;opacity:0;transition:opacity .2s}
 body:hover #title{opacity:1}
+#tvHpOverlay{position:absolute;top:14px;right:14px;z-index:20;display:none;flex-direction:column;gap:6px;align-items:stretch;min-width:170px;max-width:32vw;padding:8px;background:rgba(8,8,8,.78);border:1px solid rgba(255,255,255,.35);border-radius:8px;box-shadow:0 5px 18px rgba(0,0,0,.55);color:#fff;pointer-events:none}
+.tv-hp-row{display:flex;justify-content:space-between;align-items:center;gap:14px;font-weight:bold;font-size:15px;line-height:1.1;white-space:nowrap}
+.tv-hp-name{overflow:hidden;text-overflow:ellipsis}.tv-hp-value{font-variant-numeric:tabular-nums;color:#f2d28f}
+@media(max-width:700px){#tvHpOverlay{top:8px;right:8px;min-width:135px;padding:6px}.tv-hp-row{font-size:12px;gap:8px}}
 </style></head><body>
-<div id="stage"><div id="frame"><img id="image"><iframe id="pageFrame" title="Affichage TV" style="display:none;width:100%;height:100%;border:0;background:#000"></iframe></div></div>
+<div id="stage"><div id="frame"><img id="image"><iframe id="pageFrame" title="Affichage TV" style="display:none;width:100%;height:100%;border:0;background:#000"></iframe><div id="tvHpOverlay" aria-live="polite"></div></div></div>
 <div id="bookNav" style="display:none;position:fixed;top:50%;left:20px;right:20px;transform:translateY(-50%);z-index:6;justify-content:space-between;pointer-events:none"><button onclick="changeBook(-1)" style="pointer-events:auto;font-size:34px;padding:12px 20px">‹</button><button onclick="changeBook(1)" style="pointer-events:auto;font-size:34px;padding:12px 20px">›</button></div><div id="bar"><button onclick="fit()">Adapter</button><button onclick="zoomIn()">＋</button><button onclick="zoomOut()">−</button><button id="fullscreenBtn" onclick="full()">⛶ Plein écran</button><button onclick="window.close()">✕</button></div>
 <div id="title"></div>
 <script>
@@ -56,11 +60,32 @@ async function full(){
   }catch(e){}
 }
 
+let tvHpHideTimer=null;
+function renderTVHP(players){
+  const box=document.getElementById('tvHpOverlay');if(!box)return;
+  box.innerHTML=(Array.isArray(players)?players:[]).map(p=>{
+    const cur=p.current===null||p.current===undefined?'—':p.current;
+    const max=p.max===null||p.max===undefined?'':(' / '+p.max);
+    return '<div class="tv-hp-row"><span class="tv-hp-name">'+escapeTV(p.name||'Joueur')+'</span><span class="tv-hp-value">❤️ '+cur+max+'</span></div>';
+  }).join('');
+}
+function escapeTV(v){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function setTVHP(data){
+  const box=document.getElementById('tvHpOverlay');if(!box)return;
+  clearTimeout(tvHpHideTimer);
+  if(data?.mode==='hide'){box.style.display='none';return}
+  renderTVHP(data?.players);
+  box.style.display='flex';
+  if(data?.mode==='flash'){
+    tvHpHideTimer=setTimeout(()=>{box.style.display='none'},Math.max(100,Number(data.duration)||4000));
+  }
+}
 function receiveTVMessage(data){
   if(!data)return;
   if(data.type==='theLastHeartTV')setTVImage(data);
   else if(data.type==='theLastHeartTVPage')setTVPage(data);
   else if(data.type==='theLastHeartTVCommand'&&data.command==='fullscreen')full();
+  else if(data.type==='theLastHeartDamageHP')setTVHP(data);
   else if(data.type==='theLastHeartInventories'){
     try{
       if(pageFrame.style.display!=='none' && pageFrame.contentWindow){
