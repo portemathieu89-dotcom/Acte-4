@@ -642,8 +642,17 @@ function rollInlineAttack(modifier,button){
  const roll=Math.floor(Math.random()*20)+1,total=roll+Number(modifier||0),hit=roll===20||roll!==1&&total>=ca;
  if(out){out.className='combat-attack-result '+(hit?'attack-hit':'attack-miss');out.innerHTML='<b>'+total+' vs CA '+ca+' — '+(hit?'🟢 RÉUSSITE':'🔴 RATÉ')+'</b> <span class="inline-dice-detail">('+roll+(modifier?' '+(modifier>0?'+ ':'− ')+Math.abs(modifier):'')+')</span>'+ (roll===20?' <b>💥 Critique !</b>':roll===1?' <b>❌ Échec critique</b>':'');out.dataset.hit=hit?'1':'0';}
  combatAttackState[id]={targetIndex,hit,roll,total,ca};saveCombatAttackState();
+
  const attackLabel=String(button?.textContent||'').toLowerCase();
- 
+ if(attackLabel.includes('griffe 1')||attackLabel.includes('griffe 2')){
+   const key=id+'_'+targetIndex;
+   let dc=doubleClawState[key];
+   if(!dc||dc.targetIndex!==targetIndex)dc={targetIndex,griffe1:false,griffe2:false};
+   if(attackLabel.includes('griffe 1'))dc.griffe1=hit;
+   if(attackLabel.includes('griffe 2'))dc.griffe2=hit;
+   doubleClawState[key]=dc;
+   saveDoubleClawState();
+ }
 }
 function rollInlineDice(count,sides,modifier,button){
  const buttonLabel=String(button?.textContent||'').toLowerCase();
@@ -653,7 +662,7 @@ function rollInlineDice(count,sides,modifier,button){
    const cleanKey=id+'_'+getCombatTarget(id);
    const dc=doubleClawState[cleanKey];
    const out=button?.parentElement?.querySelector('.inline-dice-result');
-   if(id!==''||!dc||dc.targetIndex===null||!dc.griffe1||!dc.griffe2){
+   if(id===''||!dc||dc.targetIndex===null||!dc.griffe1||!dc.griffe2){
      if(out)out.innerHTML='<b>⚠️ Les 2 Griffes doivent avoir touché la même cible.</b>';
      return;
    }
