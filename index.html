@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Last Heart — App de base</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#151515;color:#eee}.app{display:flex;min-height:100vh}.side{position:sticky;top:0;height:100vh;width:250px;flex:none;background:#202020;padding:22px;border-right:1px solid #333}.side h1{font-size:22px;margin:0 0 25px}.nav button{width:100%;text-align:left;background:#2b2b2b;color:#eee;border:0;padding:12px;margin:5px 0;border-radius:7px;cursor:pointer}.nav button:hover,.nav button.active{background:#3b3b3b}.act-toggle{display:flex;justify-content:space-between;align-items:center}.chevron{font-size:14px;color:#bbb;transition:transform .15s}.act-toggle.collapsed .chevron{transform:rotate(-90deg)}.subnav{display:none;margin:-1px 0 8px 12px;padding-left:10px;border-left:1px solid #444}.subnav.open{display:block}.subnav button{background:transparent!important;color:#bbb;padding:8px 10px;margin:2px 0;font-size:13px}.subnav button:hover,.subnav button.subactive{background:#303030!important;color:#fff}.nav-divider{height:1px;background:#333;margin:14px 0}.nav-label{font-size:11px;color:#888;letter-spacing:1px;margin:0 0 5px 2px}.main{flex:1;padding:35px;max-width:1250px}h2{font-size:30px;margin-top:0}.card{background:#202020;border:1px solid #333;border-radius:10px;padding:20px;margin:15px 0}.card h3{margin-top:0}.link{display:inline-block;background:#444;color:white;border:0;padding:9px 13px;border-radius:6px;cursor:pointer;margin:5px 5px 0 0}.link:hover{background:#555}.section{margin-top:30px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:15px}/* Combat PV */
+.combat-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:15px 0}.combat-toolbar input,.combat-enemy input{background:#17120f;color:#f4eadb;border:1px solid #6a4a21;border-radius:6px;padding:9px 10px;box-sizing:border-box}.combat-toolbar input{min-width:240px}.combat-enemy{background:#19130f;border:1px solid #5b421f;border-radius:10px;padding:16px;margin:10px 0}.combat-enemy-head{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}.combat-enemy-name{font-size:20px;font-weight:bold;color:#f1dfbd}.pv-line{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}.pv-current{font-size:24px;font-weight:bold;min-width:110px}.pv-bar{height:14px;flex:1;min-width:180px;background:#34271e;border-radius:99px;overflow:hidden;border:1px solid #5b421f}.pv-fill{height:100%;width:100%;background:#6e9f4b;transition:width .2s,background .2s}.damage-box{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}.damage-box input{width:130px}.combat-dead{opacity:.55}.combat-dead .pv-fill{background:#6d2b2b!important}.combat-dead .combat-enemy-name{text-decoration:line-through}.small-note{opacity:.78;font-size:13px}.danger{background:#6d2b2b!important}.hidden{display:none} .fiche-combat{position:sticky;top:0;z-index:8;background:linear-gradient(145deg,#241a12,#17100c);border:2px solid #806037;border-radius:8px;padding:8px 12px;margin:0 0 16px;box-shadow:0 5px 16px #000;color:#eadfc9}.fiche-combat-title{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}.fiche-combat-title strong{font-size:16px;color:#e0bd79}.fiche-combat-layout{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(380px,1fr);gap:10px;align-items:start}.fiche-combat-pv{min-width:0}.fiche-pv-row{display:grid;grid-template-columns:105px 1fr;gap:8px;align-items:center}.fiche-pv-current{font-size:17px;font-weight:bold;color:#f1dfb9}.fiche-pv-bar{height:7px;background:#34271e;border:1px solid #5b421f;border-radius:99px;overflow:hidden;box-shadow:inset 0 1px 3px #000}.fiche-pv-fill{height:100%;min-width:0;transition:width .2s,background .2s}.fiche-damage{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px}.fiche-damage input{width:90px;background:#17120f;color:#f4eadb;border:1px solid #6a4a21;border-radius:6px;padding:5px 7px}.fiche-enemy-block{padding:7px 0;border-top:1px solid #493624}.fiche-enemy-block:first-of-type{border-top:0}.fiche-dead{opacity:.58}.fiche-dead .fiche-enemy-name{text-decoration:line-through}.fiche-enemy-name{font-weight:bold;color:#dbc18f;margin-bottom:3px}.fiche-combat-note{font-size:12px;opacity:.8;margin:-2px 0 6px}.initiative-tracker{background:linear-gradient(145deg,#1b1510,#120d0a);border:1px solid #6d522f;border-radius:8px;padding:10px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.03);min-width:0}.initiative-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}.initiative-head strong{font-size:15px;color:#e0bd79}.initiative-round{font-size:12px;color:#d8c5a3;background:#2a2018;border:1px solid #594325;border-radius:5px;padding:3px 7px}.initiative-actions{display:flex;gap:5px;margin-bottom:8px}.initiative-actions button{flex:1;background:#3a2919;color:#f4eadb;border:1px solid #76552d;border-radius:5px;padding:5px 6px;cursor:pointer;font-size:12px}.initiative-actions button:hover{background:#4b3420}.initiative-list{display:flex;flex-direction:column;gap:4px;max-height:none;overflow:visible;padding-right:2px}.initiative-row{position:relative;display:grid;grid-template-columns:28px minmax(105px,1fr) 28px minmax(0,1fr) 28px 54px;gap:5px;align-items:center;background:#211811;border:1px solid #493624;border-radius:5px;padding:4px 5px;overflow:visible}.initiative-row:has(.initiative-effect-picker.open),.initiative-row:hover{z-index:200}.initiative-effect-chip:hover{z-index:250}.initiative-name-wrap{display:flex;align-items:center;gap:6px;min-width:0;overflow:hidden}.initiative-name-wrap>div:first-child{min-width:0;flex:1}.initiative-roll{width:28px;height:27px;padding:0;flex:0 0 28px;background:#3a2919;color:#f4eadb;border:1px solid #76552d;border-radius:5px;cursor:pointer;font-size:15px;line-height:1;justify-self:center;margin:0}.initiative-roll-placeholder{display:block;width:28px;height:27px}.initiative-roll:hover{background:#5a3d22;transform:scale(1.04)}.initiative-row.active{border-color:#c49a52;box-shadow:0 0 0 1px rgba(196,154,82,.35);background:#302216}.initiative-row.dead{opacity:.45}.initiative-row.dead .initiative-name{text-decoration:line-through}.initiative-order{font-size:11px;color:#9f8765;text-align:center}.initiative-name{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#eadfc9}.initiative-type{font-size:9px;color:#9f896c;text-transform:uppercase}.initiative-input{width:54px;box-sizing:border-box;background:#17120f;color:#f4eadb;border:1px solid #6a4a21;border-radius:5px;padding:4px;text-align:center;font-weight:bold;justify-self:end;margin-right:0}.initiative-effects{position:relative;display:flex;align-items:center;justify-content:flex-start;gap:3px;min-width:0;max-width:100%;flex-wrap:wrap;transform:none}.initiative-add-cell{display:flex;align-items:center;justify-content:flex-start;min-width:0;overflow:visible}.initiative-effects-cell{position:relative;display:flex;align-items:center;min-width:0;overflow:visible}.initiative-effects{display:flex;align-items:center;gap:3px;min-width:0;width:100%;max-width:100%;position:relative;overflow:visible}.initiative-effect-chips{display:flex;align-items:center;gap:3px;min-width:0;flex-wrap:wrap}.initiative-add-slot{display:contents}.initiative-effect-chip{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:2px;min-width:23px;height:23px;padding:2px 4px;background:#302216;color:#f1dfbd;border:1px solid #76552d;border-radius:5px;font-size:11px;cursor:help}.initiative-effect-chip:hover{background:#4a3420;border-color:#a27a42}.initiative-effect-chip::after{content:attr(data-tooltip);position:absolute;z-index:80;left:50%;top:calc(100% + 8px);transform:translate(-50%,-5px);width:245px;padding:9px 10px;background:#17110d;color:#eee4d0;border:1px solid #8a6738;border-radius:7px;box-shadow:0 8px 22px #000b;font-size:11px;line-height:1.35;font-weight:normal;text-align:left;opacity:0;visibility:hidden;pointer-events:none;transition:.15s ease}.initiative-effect-chip:hover::after{opacity:1;visibility:visible;transform:translate(-50%,0)}.initiative-effect-remove{border:0;background:transparent;color:#bda98b;padding:0 1px;cursor:pointer;font-size:10px;line-height:1}.initiative-add-effect{width:23px;height:23px;padding:0;background:#3a2919;color:#e8d2a9;border:1px solid #76552d;border-radius:5px;cursor:pointer;font-size:15px;line-height:1;position:relative;left:0;justify-self:start}.initiative-add-effect:hover{background:#5a3d22}.initiative-effect-picker{display:none;position:absolute;z-index:75;right:0;top:calc(100% + 4px);width:320px;max-height:255px;overflow:auto;padding:7px;background:#17110d;border:1px solid #8a6738;border-radius:7px;box-shadow:0 10px 28px #000d;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}.initiative-effect-picker.open{display:grid}.initiative-effect-choice{position:relative;display:flex;align-items:center;gap:5px;width:100%;min-width:0;padding:5px 6px;background:#2b1f16;color:#eadfc9;border:1px solid #4f3b28;border-radius:5px;cursor:pointer;text-align:left;font:11px Georgia,serif}.initiative-effect-choice:hover{background:#493421;border-color:#9b7542}.initiative-effect-choice::after{content:attr(data-tooltip);position:absolute;z-index:90;left:0;top:calc(100% + 6px);width:245px;padding:8px 10px;background:#17110d;color:#eee4d0;border:1px solid #8a6738;border-radius:7px;box-shadow:0 8px 22px #000b;font-size:11px;line-height:1.35;opacity:0;visibility:hidden;pointer-events:none;transition:.15s ease}.initiative-effect-choice:hover::after{opacity:1;visibility:visible}.initiative-effect-picker-title{grid-column:1/-1;color:#cfae73;font-size:11px;padding:2px 3px 4px;border-bottom:1px solid #493624}.initiative-empty{font-size:12px;color:#a9957b;text-align:center;padding:8px}.initiative-help{font-size:11px;color:#a9957b;margin-top:7px}.inline-dice{display:inline-flex;align-items:center;gap:7px;margin-left:10px}.inline-dice button{background:#6d4b24;color:#fff;border:1px solid #9a713b;border-radius:6px;padding:5px 9px;cursor:pointer;font-family:Georgia,serif;font-weight:bold}.inline-dice button:hover{background:#805b2d}.inline-dice-result{font-weight:bold;color:#6d2b1d}.inline-dice-detail{font-size:13px;color:#665044}@media(max-width:900px){.fiche-combat-layout{grid-template-columns:1fr}.initiative-list{max-height:260px}}@media(max-width:800px){.fiche-pv-row{grid-template-columns:1fr}}.thumb{width:100%;height:190px;object-fit:cover;border-radius:8px;margin:8px 0 10px;display:block;cursor:pointer}.thumb.tall{height:260px;object-fit:cover}.book-thumb{height:260px;object-fit:cover}.image-card p{min-height:42px}.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:10;padding:20px}.modal.open{display:block}.modalbox{width:94vw;height:94vh;margin:auto;overflow:auto;background:#f5ead5;color:#231a13;border-radius:8px;box-shadow:0 0 30px #000}.fiche{width:min(1050px,100%);margin:auto;padding:34px 42px;font-family:Georgia,serif;line-height:1.45}.fiche h1{font-size:34px;margin:0 0 5px;text-transform:uppercase}.fiche .subtitle{font-style:italic;font-size:18px;margin-bottom:20px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;border-top:2px solid #6d2b1d;border-bottom:2px solid #6d2b1d;padding:14px 0;margin:14px 0}.abilities{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;text-align:center;border-bottom:2px solid #6d2b1d;padding:10px 0 15px}.abilities b{display:block;font-size:14px}.abilities span{font-size:17px}.fiche section{border-bottom:1px solid #8c6a55;padding:13px 0}.fiche h2{font-family:Georgia,serif;font-size:21px;text-transform:uppercase;color:#672718;margin:0 0 8px}.fiche h3{font-size:17px;color:#672718;margin:11px 0 3px}.fiche p{margin:5px 0}.close{position:fixed;right:25px;top:15px;background:#444;border:0;color:white;font-size:24px;border-radius:6px;padding:5px 12px;cursor:pointer;z-index:12}.zoombar{position:fixed;left:25px;top:15px;z-index:12;display:flex;gap:6px}.zoombar button{background:#444;color:#fff;border:0;padding:8px 12px;border-radius:6px;cursor:pointer}.imageModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:20;align-items:center;justify-content:center;padding:65px 25px 25px}.imageModal.open{display:flex}.imageModal img{max-width:95vw;max-height:88vh;object-fit:contain;border-radius:5px;box-shadow:0 0 30px #000}.imageBar{position:fixed;top:15px;left:50%;transform:translateX(-50%);z-index:22;display:flex;gap:7px}.imageBar button{background:#444;color:#fff;border:0;padding:8px 12px;border-radius:6px;cursor:pointer}.bookArrow{display:none;position:fixed;top:50%;transform:translateY(-50%);z-index:22;background:rgba(68,68,68,.9);color:#fff;border:0;border-radius:10px;padding:18px 22px;font-size:34px;cursor:pointer}.bookArrow:hover{background:#555}.bookArrow.left{left:20px}.bookArrow.right{right:20px}.small{font-size:13px;color:#bbb}.hero{width:100%;max-height:520px;object-fit:cover;border-radius:10px;margin:10px 0}.two{display:grid;grid-template-columns:1fr 1fr;gap:15px}.two img{width:100%;height:280px;object-fit:cover;border-radius:8px}.badge{display:inline-block;padding:4px 8px;border-radius:12px;background:#343434;font-size:12px;margin:2px}.search{width:100%;background:#181818;border:1px solid #444;color:#eee;padding:11px;border-radius:7px;margin-bottom:15px}@media(max-width:800px){.app{display:block}.side{position:relative;width:100%;height:auto}.main{padding:20px}.stats{grid-template-columns:1fr 1fr}.abilities{grid-template-columns:repeat(3,1fr)}.two{grid-template-columns:1fr}.fiche{padding:25px}.zoombar{left:10px}.close{right:10px}}
+
+/* ===== SKIN THE LAST HEART — Quartier général du capitaine ===== */
+:root{
+  --wood:#17110d;--wood2:#241913;--wood3:#302119;
+  --gold:#c69a52;--gold2:#e0bd79;--ink:#eadfc9;--muted:#a99b86;
+  --panel:#211913;--panel2:#2a2019;--line:#58432e;
+}
+body{
+  font-family:Georgia,"Times New Roman",serif;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(198,154,82,.09),transparent 35%),
+    linear-gradient(135deg,#100c09 0%,#1b130e 48%,#100c09 100%);
+  color:var(--ink);
+}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.16;background-image:radial-gradient(rgba(255,255,255,.12) .7px,transparent .7px);background-size:7px 7px;mix-blend-mode:soft-light}
+.app{position:relative;z-index:1}
+.side{
+  width:275px;padding:24px 18px;background:linear-gradient(180deg,#1a120d,#241913 55%,#130d09);
+  border-right:1px solid #6b5031;box-shadow:8px 0 25px rgba(0,0,0,.45),inset -1px 0 rgba(224,189,121,.08);
+}
+.side:after{content:"⚓";display:block;text-align:center;color:#8e6a3c;font-size:25px;margin-top:22px;opacity:.7}
+.side h1{font-family:Georgia,serif;color:var(--gold2);font-size:24px;text-align:center;letter-spacing:.5px;margin:0 0 25px;text-shadow:0 2px 5px #000}
+.nav button{
+  font-family:Georgia,serif;width:100%;text-align:left;color:#dbcdb5;background:linear-gradient(180deg,#30231a,#211812);
+  border:1px solid #4f3b28;border-radius:5px;padding:12px 13px;margin:5px 0;cursor:pointer;
+  box-shadow:inset 0 1px rgba(255,255,255,.04),0 2px 5px rgba(0,0,0,.25);transition:.16s
+}
+.nav button:hover,.nav button.active{background:linear-gradient(180deg,#4a3522,#302015);border-color:#8e6a3c;color:#f1dfb9;box-shadow:inset 0 0 12px rgba(198,154,82,.08),0 2px 7px #000}
+.subnav{border-left:1px solid #725535;padding-left:10px}.subnav button{background:transparent!important;border-color:transparent;color:#9f917c;padding:8px 10px}.subnav button:hover,.subnav button.subactive{background:rgba(198,154,82,.09)!important;border-color:#4f3b28;color:#e6d4b3}
+.nav-divider{background:#4f3b28}.nav-label{color:#8d7658;font-family:Arial,sans-serif;font-weight:bold}
+.main{max-width:1400px;padding:38px 40px}
+h2{font-family:Georgia,serif;color:var(--gold2);font-size:32px;text-shadow:0 2px 4px #000;border-bottom:1px solid #58432e;padding-bottom:12px}
+.card{background:linear-gradient(145deg,rgba(47,35,27,.97),rgba(29,21,16,.98));border:1px solid #51402d;border-radius:7px;padding:20px;margin:15px 0;box-shadow:0 7px 18px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.035)}
+.card h3{color:#e0c28c}.link{font-family:Arial,sans-serif;background:#3a2b20;border:1px solid #60482d;color:#ead7b6;border-radius:5px;box-shadow:inset 0 1px rgba(255,255,255,.05)}.link:hover{background:#55402a;border-color:#9b7542}
+.hero{border:1px solid #5e472d;border-radius:6px;box-shadow:0 8px 25px #000}
+.thumb{border:1px solid #55412b;border-radius:5px;box-shadow:0 5px 15px #000}
+.badge{background:#3b2b1e;border:1px solid #5c452b;color:#d9c39d}
+.search{background:#17110d;border:1px solid #59432c;color:#e8dbc5}
+.small{color:#aa9b84}
+/* cartes d'images : aspect plus "archives du navire" */
+.image-card{position:relative;overflow:hidden}.image-card:before{content:"";position:absolute;inset:0;border-top:2px solid rgba(198,154,82,.13);pointer-events:none}
+/* sections */
+.section>h3{color:#d9b876;font-size:22px;border-bottom:1px solid #493624;padding-bottom:7px}
+/* Modales */
+.modal,.imageModal{background:rgba(5,3,2,.94);backdrop-filter:blur(3px)}
+.modalbox{background:#eadcc2;border:2px solid #765534;border-radius:5px;box-shadow:0 0 45px #000,0 0 0 1px rgba(224,189,121,.12)}
+.close,.zoombar button,.imageBar button{background:linear-gradient(#4a3625,#2a1d14);border:1px solid #745534;color:#e8d2a9;box-shadow:0 2px 7px #000}.close:hover,.zoombar button:hover,.imageBar button:hover{background:#60462c}
+.bookArrow{background:rgba(49,35,23,.9);border:1px solid #89673c;box-shadow:0 3px 12px #000}.bookArrow:hover{background:#64482d}
+@media(max-width:800px){.side{width:100%}.main{padding:22px}}
+.side{overflow-y:auto;overflow-x:hidden;}
+.campaign-save-card{border-color:#725535;background:linear-gradient(145deg,rgba(48,35,25,.98),rgba(28,20,15,.98))}
+.campaign-save-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+#campaignSaveStatus{margin-top:10px;min-height:18px}
+.combat-player-card{cursor:pointer;transition:.15s ease}.combat-player-card:hover{border-color:#8f6d3d;transform:translateY(-1px)}.combat-player-card.combat-target{border-color:#d2a65a;box-shadow:0 0 0 2px rgba(210,166,90,.22),0 5px 16px #0008;background:linear-gradient(145deg,#3a2a1a,#21160f)}.combat-player-target-badge{display:inline-block;margin-left:5px;padding:2px 5px;border-radius:5px;background:#6d4b24;color:#f5ddb0;font-size:10px}.combat-target-banner{margin:8px 0;padding:8px 10px;border:1px solid #76552d;border-radius:6px;background:#2a1d14;color:#ead7b6;font-size:12px}.combat-target-banner strong{color:#f0cf8d}.combat-temp-row{display:flex;align-items:center;gap:5px;margin-top:5px}.combat-temp-row input{width:58px!important;min-width:58px!important}.combat-dice-panel{margin-top:9px;padding:9px;border-top:1px solid #493624}.combat-dice-title{font-size:13px;color:#e0bd79;font-weight:bold;margin-bottom:6px}.combat-dice-controls{display:flex;gap:5px;align-items:center;flex-wrap:wrap}.combat-dice-controls select,.combat-dice-controls input{background:#17120f;color:#f4eadb;border:1px solid #6a4a21;border-radius:5px;padding:5px 6px}.combat-dice-controls input{width:54px;text-align:center}.combat-dice-controls button{background:#6d4b24;color:#fff;border:1px solid #9a713b;border-radius:5px;padding:5px 8px;cursor:pointer}.combat-dice-result{margin-top:6px;min-height:20px;color:#f0cf8d}.combat-attack-result.attack-hit{color:#72c477}.combat-attack-result.attack-miss{color:#df6565}.combat-attack-result.attack-none{color:#e0bd79}.combat-auto-damage{font-size:11px;margin-left:5px}.combat-damage-memory{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:7px;padding:6px 8px;border-top:1px solid #493624;background:#261b13;border-radius:5px;font-size:11px;color:#d8c2a2}.combat-damage-memory strong{color:#f0cf8d;font-size:16px}.combat-save-controls{display:inline-flex;align-items:center;gap:4px;margin:4px 0;flex-wrap:wrap}.combat-save-controls button{background:#3a2919;color:#f4eadb;border:1px solid #76552d;border-radius:5px;padding:4px 7px;cursor:pointer;font-size:11px}.combat-save-controls button:hover{background:#5a3d22}.combat-save-result{font-size:11px}.combat-save-result.save-fail{color:#df6565}.combat-save-result.save-success{color:#72c477}.dps-meter-wrap{margin-top:7px}.meters-active{font-size:10px;color:#d8c2a2;background:#261b13;border:1px solid #493624;border-radius:5px;padding:4px 6px;margin-bottom:5px;text-align:center}.meters-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.dps-meter{margin:0;padding:7px;background:linear-gradient(145deg,#211811,#17100c);border:1px solid #5b452b;border-radius:6px;min-width:0}.dps-meter-head{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:5px}.dps-meter-head strong{color:#e0bd79;font-size:12px}.hps-meter .dps-meter-head strong{color:#72d08a}.dps-meter-time{font-size:10px;color:#bda98b}.dps-meter-row{display:grid;grid-template-columns:52px minmax(35px,1fr) 34px 54px;gap:3px;align-items:center;margin:3px 0}.dps-meter-name{font-size:10px;color:#eadfc9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dps-meter-bar{height:7px;background:#34271e;border:1px solid #5b421f;border-radius:99px;overflow:hidden}.dps-meter-fill{height:100%;background:#c66b5b;transition:width .2s}.hps-meter-fill{height:100%;background:#55bd72;transition:width .2s}.dps-meter-dmg{font-weight:bold;text-align:right;color:#f0cf8d;font-size:10px}.hps-meter .dps-meter-dmg{color:#8fdda3}.dps-meter-value{font-size:9px;color:#bda98b;text-align:right}.dps-meter-total{font-size:10px;color:#cdb99a;margin-top:5px;border-top:1px solid #493624;padding-top:4px}.dps-meter-controls{display:flex;justify-content:flex-end;gap:5px;align-items:center;margin-top:5px}.dps-meter-controls button{background:#3a2919;color:#f4eadb;border:1px solid #76552d;border-radius:5px;padding:3px 5px;cursor:pointer;font-size:10px}.dps-meter-controls button:hover{background:#5a3d22}.dps-meter-reset{margin-left:0}@media(max-width:700px){.meters-grid{grid-template-columns:1fr}}
+
+
+.player-inventory-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.player-inventory-card{background:linear-gradient(145deg,#2b2017,#17100c);border:1px solid #765534;border-radius:10px;padding:18px;box-shadow:inset 0 1px rgba(255,255,255,.04),0 8px 22px rgba(0,0,0,.25)}.player-inventory-card h3{margin:0 0 10px;color:var(--gold2);font-size:24px}.po-row{display:flex;align-items:center;gap:8px;margin-bottom:14px}.po-row input{width:120px}.inventory-list{display:flex;flex-direction:column;gap:7px;min-height:50px}.inventory-qty-row{display:flex;align-items:center;gap:4px;margin-top:6px}.inventory-qty{width:58px;text-align:center;padding:5px 4px;background:#17110d;color:#f4eadb;border:1px solid #6a4a21;border-radius:6px}.inventory-item-main{flex:1;min-width:0}.inventory-item-name{display:flex;align-items:center;gap:5px;flex-wrap:wrap}.inventory-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;border:1px solid rgba(180,145,75,.2);border-radius:6px;background:rgba(15,12,10,.5)}.inventory-item-name{flex:1}.inventory-actions{display:flex;gap:5px;align-items:center}.inventory-actions button{padding:5px 8px}.inventory-actions .loot-sell{background:#5b4520;color:#f2d28a}.inventory-actions .loot-sell:hover{background:#76582a}.inventory-add{display:flex;gap:7px;margin-top:10px}.inventory-add input{flex:1}.inventory-tvbar{display:flex;justify-content:flex-end;margin-bottom:14px}.inventory-empty{opacity:.6;font-style:italic;padding:10px 0}.inventory-tv-note{margin-top:12px}.inventory-tv{min-height:100vh;background:radial-gradient(circle at top,#2c2118,#090706 70%);color:#eee8dc;padding:28px;font-family:Georgia,serif;box-sizing:border-box}.inventory-tv h1{text-align:center;color:#d8b46a;margin:0 0 22px;font-size:42px}.inventory-tv-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;max-width:1500px;margin:auto}.tv-player{background:linear-gradient(145deg,#2b2017,#130d09);border:2px solid #765534;border-radius:14px;padding:20px;min-height:270px;box-shadow:0 10px 30px #0008}.tv-player h2{margin:0 0 12px;color:#d8b46a;font-size:30px}.tv-po{font-size:23px;margin-bottom:15px}.tv-item{font-size:20px;padding:8px 0;border-bottom:1px solid #76553466}.tv-empty{opacity:.55;font-style:italic;font-size:18px}.tv-updated{text-align:center;opacity:.45;margin-top:18px;font-size:13px}@media(max-width:800px){.player-inventory-grid,.inventory-tv-grid{grid-template-columns:1fr}}
+
+.player-name-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}.player-avatar{width:58px;height:58px;border-radius:50%;object-fit:cover;border:2px solid #b98b4f;box-shadow:0 3px 10px #0008}.player-name-row h3{margin:0}.inventory-tvbar{display:flex;justify-content:flex-end;margin-bottom:14px}
+
+/* Boutique d'alchimie + infobulles */
+.shop-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}.shop-toolbar label{color:#d8c39f;font-weight:bold}.shop-toolbar select,.shop-toolbar input{background:#17110d;color:#eadfc9;border:1px solid #6b5031;border-radius:6px;padding:10px 12px;font-family:Georgia,serif}.shop-toolbar select{min-width:180px}.shop-toolbar input{width:80px}.port-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media(max-width:1000px){.port-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.port-grid{grid-template-columns:1fr}}
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:15px}.shop-card{position:relative;background:linear-gradient(145deg,#2b2017,#17100c);border:1px solid #765534;border-radius:9px;padding:18px;box-shadow:inset 0 1px rgba(255,255,255,.04),0 8px 22px rgba(0,0,0,.22)}.shop-card h3{margin:0 0 8px;color:var(--gold2);font-size:20px}.shop-price{font-weight:bold;color:#e4c47e;font-size:18px;margin-bottom:8px}.shop-effect{color:#d8ccb8;line-height:1.45}.shop-buy{margin-top:12px}.effect-term{position:relative;color:#e6c26f;text-decoration:underline dotted;cursor:help;font-weight:bold}.effect-term::after{content:attr(data-tooltip);position:absolute;z-index:50;left:0;bottom:calc(100% + 9px);width:290px;padding:12px 14px;background:#17110d;color:#eee4d0;border:1px solid #8a6738;border-radius:8px;box-shadow:0 8px 25px #000b;font-size:13px;line-height:1.4;font-weight:normal;text-align:left;opacity:0;visibility:hidden;transform:translateY(5px);transition:.15s ease;pointer-events:none}.effect-term::before{content:"";position:absolute;z-index:51;left:14px;bottom:calc(100% + 3px);border:6px solid transparent;border-top-color:#8a6738;opacity:0;visibility:hidden;transition:.15s ease}.effect-term:hover::after,.effect-term:hover::before{opacity:1;visibility:visible;transform:translateY(0)}.shop-status{padding:12px 14px;border:1px solid #765534;border-radius:7px;background:rgba(15,12,10,.45);margin-bottom:15px}.shop-status strong{color:var(--gold2)}@media(max-width:800px){.shop-grid{grid-template-columns:1fr}.effect-term::after{left:auto;right:0}}
+
+
+.inventory-item-main{min-width:0;display:flex;flex-direction:column;gap:3px}.inventory-item-effect{font-size:.82rem;line-height:1.3;color:#cfc2ad;opacity:.85;padding-left:24px;max-width:620px}.inventory-item{align-items:flex-start}
+.potion-icon{width:34px;height:34px;object-fit:contain;vertical-align:middle;margin-right:7px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}.potion-icon-small{width:28px;height:28px;object-fit:contain;vertical-align:middle;margin-right:6px}
+/* ===== Loot des combats ===== */
+.loot-modal{display:none;position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px}.loot-modal.open{display:flex}.loot-modal-box{width:min(420px,94vw);background:linear-gradient(145deg,#2b2017,#17100c);border:1px solid #8a6738;border-radius:10px;padding:16px;box-shadow:0 15px 45px #000;color:var(--ink)}.loot-modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;color:var(--gold2);font-size:18px}.loot-modal-head button{background:transparent;border:0;color:#d8c9b0;font-size:24px;cursor:pointer}.loot-modal-item{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;margin-bottom:14px;background:#17110d;border:1px solid #4f3b28;border-radius:7px}.loot-modal-item span{color:#cfae73}.loot-modal-label{font-size:12px;color:#bba98e;margin:10px 0 6px;text-transform:uppercase;letter-spacing:.5px}.loot-player-options{display:grid;grid-template-columns:1fr 1fr;gap:6px}.loot-player-option{display:flex;align-items:center;gap:8px;padding:9px 10px;background:#211811;color:#eadfc9;border:1px solid #493624;border-radius:6px;cursor:pointer;text-align:left}.loot-player-option:hover,.loot-player-option.selected{border-color:#b28a4b;background:#352719}.loot-player-dot{width:10px;height:10px;border-radius:50%;border:1px solid #9b7950;background:#17110d;display:inline-block}.loot-player-option.selected .loot-player-dot{background:#c69a52;box-shadow:0 0 0 2px rgba(198,154,82,.18)}.loot-qty{display:flex;align-items:center;justify-content:center;gap:14px;margin:6px 0 16px}.loot-qty button{width:34px;height:34px;background:#3a2919;color:#f4eadb;border:1px solid #76552d;border-radius:6px;font-size:20px;cursor:pointer}.loot-qty-value{min-width:40px;text-align:center;font-size:22px;font-weight:bold;color:#e0bd79}.loot-modal-actions{display:flex;justify-content:flex-end;gap:7px}.loot-confirm{border-color:#9b7542!important;background:#4a3522!important}.loot-panel{margin:10px 0 14px;padding:12px;background:rgba(36,25,19,.92);border:1px solid #765534;border-radius:8px;color:var(--ink)}.loot-icon-img{display:block;width:30px;height:30px;object-fit:contain;vertical-align:middle;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}.loot-add:has(.loot-icon-img){width:36px;height:34px;padding:1px;display:inline-flex;align-items:center;justify-content:center}
+.loot-panel h4{margin:0 0 8px;color:var(--gold2);font-size:18px}.loot-reminder{font-size:13px;line-height:1.4;margin:0 0 10px;color:#d8ccb8}.loot-table{width:100%;border-collapse:collapse;font-size:13px}.loot-table th,.loot-table td{padding:7px 5px;border-bottom:1px solid #58432e;text-align:left;vertical-align:middle}.loot-table th{color:#cdb17c;font-weight:bold}.loot-table td:nth-child(2),.loot-table td:nth-child(3){white-space:nowrap;text-align:center}.loot-table .loot-special td{color:#f0cf83}.loot-add{padding:5px 8px;min-width:42px;text-align:center}.loot-note{font-size:12px;color:#a99b86;margin:8px 0 0}.loot-card-title{display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer;user-select:none}.loot-collapse{padding:2px 7px;min-width:30px;font-size:13px}.loot-panel.collapsed .loot-body{display:none}.loot-panel.collapsed .loot-collapse{transform:rotate(-90deg)}
+@media(max-width:650px){.loot-table{font-size:12px}.loot-table th,.loot-table td{padding:6px 3px}.loot-add{min-width:38px;padding:5px 6px}}
+.potion-name-wrap{display:inline-flex;align-items:center;gap:2px}
+/* Télécommande musique globale — ne remplace aucun lecteur audio existant */
+#globalMusicRemote{position:fixed;top:14px;right:14px;z-index:2147483647;width:270px;display:none;background:#211811;color:#f4eadb;border:1px solid #76552d;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.45);padding:7px 9px;font-size:12px}
+#globalMusicRemote.visible{display:block}
+.global-remote-title{display:flex;align-items:center;gap:6px;margin-bottom:5px}.global-remote-name{font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}.global-remote-type{font-size:10px;color:#bba98e}
+.global-remote-controls{display:flex;align-items:center;gap:4px}.global-remote-controls button{background:#3a2919;color:#f4eadb;border:1px solid #76552d;border-radius:5px;padding:3px 6px;cursor:pointer}.global-remote-controls button:hover{background:#4b3420}.global-remote-volume{flex:1;min-width:55px}.global-remote-volume input{width:100%;accent-color:#c69a52}.global-remote-percent{font-size:10px;color:#bba98e;width:31px;text-align:right}
+.fiche-enemy-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 5px}.fiche-enemy-ca{display:inline-flex;align-items:center;gap:4px;color:#d8c5a3;font-size:12px}.fiche-enemy-ca-value{display:inline-block;min-width:26px;text-align:center;padding:3px 7px;border:1px solid #76552d;border-radius:5px;background:#302216;color:#f1dfbd;font-size:14px}.fiche-enemy-phase{color:#e0bd79;font-size:11px}.fiche-effects-summary{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin:3px 0 5px}.fiche-effect-chip{display:inline-flex;align-items:center;gap:3px;padding:3px 6px;background:#302216;color:#f1dfbd;border:1px solid #76552d;border-radius:5px;font-size:11px}.fiche-effect-chip small{opacity:.75}.fiche-no-effect{font-size:11px;color:#8f7b62;font-style:italic}.combat-right-panel{min-width:0;display:flex;flex-direction:column;gap:10px}.combat-players-panel{margin-top:0;padding-top:0;border-top:0}.combat-players-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}.combat-players-title strong{color:#e0bd79;font-size:13px}.combat-player-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.combat-player-card{background:#211811;border:1px solid #493624;border-radius:5px;padding:6px}.combat-player-head{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px}.combat-player-name{font-weight:bold;color:#eadfc9;font-size:12px}.combat-player-stats{display:flex;align-items:center;gap:5px;flex-wrap:wrap;font-size:11px;color:#d8c5a3}.combat-player-stats label{display:inline-flex;align-items:center;gap:3px}.combat-player-stats input{width:58px;min-width:58px;box-sizing:border-box;background:#17120f;color:#f4eadb;border:1px solid #8a6738;border-radius:4px;padding:4px 5px;text-align:center;font-weight:bold;font-size:13px;line-height:18px;color-scheme:dark}.combat-player-stats input::-webkit-inner-spin-button,.combat-player-stats input::-webkit-outer-spin-button{opacity:1}.combat-player-head .combat-player-stats input{width:52px;min-width:52px}.combat-player-card{min-width:0}.combat-player-stats{line-height:24px}.combat-player-initiative{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:5px;padding-top:4px;border-top:1px solid #3f2f21;font-size:11px;color:#d8c5a3}.combat-player-initiative input{width:43px;background:#17120f;color:#f4eadb;border:1px solid #6a4a21;border-radius:4px;padding:3px 4px;text-align:center;font-weight:bold}.combat-player-active{border-color:#b28a4b!important;box-shadow:0 0 0 1px rgba(198,154,82,.2)}.combat-player-effects{margin-top:4px}.combat-player-bar{height:5px;background:#34271e;border:1px solid #5b421f;border-radius:99px;overflow:hidden;margin-top:4px}.combat-player-fill{height:100%;background:#6e9f4b;transition:width .2s}.combat-player-card.player-low .combat-player-fill{background:#b1843c}.combat-player-card.player-critical .combat-player-fill{background:#9b3d3d}@media(max-width:900px){.combat-player-grid{grid-template-columns:1fr}}.combat-monster-sheet{margin-top:12px;padding-top:12px;border-top:1px solid #6d522f;background:rgba(20,14,10,.35);border-radius:7px;padding:12px}.combat-monster-sheet h1{font-size:20px;margin:0 0 3px;color:#e0bd79}.combat-monster-sheet .subtitle{font-size:12px;margin-bottom:9px;color:#c9b89d}.combat-monster-sheet .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:7px 0}.combat-monster-sheet .stats>div{background:#211811;border:1px solid #493624;border-radius:5px;padding:5px 7px;font-size:11px}.combat-monster-sheet .abilities{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;margin:7px 0}.combat-monster-sheet .abilities>div{background:#211811;border:1px solid #493624;border-radius:5px;padding:4px;text-align:center;font-size:10px}.combat-monster-sheet .abilities span{display:block;font-weight:bold;color:#eadfc9}.combat-monster-sheet section{margin:8px 0 0}.combat-monster-sheet section>p{font-size:11px;line-height:1.35;margin:4px 0}.combat-monster-sheet h2{font-size:14px;color:#e0bd79;border-bottom:1px solid #493624;padding-bottom:3px;margin:10px 0 5px}.combat-monster-sheet h3{font-size:12px;color:#dbc18f;margin:7px 0 2px}.combat-monster-sheet .inline-dice{display:inline-flex;align-items:center;gap:4px;margin-left:4px}.combat-monster-sheet .inline-dice button{background:#3a2919;color:#f4eadb;border:1px solid #76552d;border-radius:5px;padding:3px 6px;cursor:pointer;font-size:10px}.combat-monster-sheet .inline-dice button:hover{background:#5a3d22}.combat-monster-sheet .inline-dice-result{font-size:11px;color:#e8d2a9}.combat-monster-sheet .link{font-size:11px}.combat-monster-sheet a{color:#e0bd79}.combat-attack-roll{display:inline-flex;align-items:center;gap:4px;margin-left:4px}.combat-attack-roll button{background:#3a2919;color:#f4eadb;border:1px solid #76552d;border-radius:5px;padding:3px 6px;cursor:pointer;font-size:10px}.combat-attack-roll button:hover{background:#5a3d22}.combat-attack-result{font-size:11px;color:#e8d2a9}.combat-monster-sheet .phase-header{color:#e0bd79}
+.quest-pnj-name{color:#d6b477;font-size:.82em;font-weight:600;white-space:nowrap}
+</style>
+
+<style id="marine-style">
+.marine-intro{margin-bottom:18px;opacity:.9}
+.marine-group{margin:0 0 22px;padding:18px;border:1px solid rgba(180,145,75,.45);border-radius:12px;background:rgba(35,24,15,.55);box-shadow:0 8px 22px rgba(0,0,0,.18)}
+.marine-head{padding:4px 4px 14px;border-bottom:1px solid rgba(180,145,75,.28);margin-bottom:14px}
+.marine-head h3{margin:0 0 7px}.marine-head p{margin:0 0 4px}
+.marine-head small,.marine-card small{opacity:.72}
+.marine-subordinates{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.marine-card{display:flex;flex-direction:column;gap:5px;padding:13px;border-radius:10px;background:rgba(15,12,10,.58);border:1px solid rgba(180,145,75,.22)}
+.marine-card b{font-size:1.05em}.marine-card span:nth-of-type(1){opacity:.8}
+@media(max-width:900px){.marine-subordinates{grid-template-columns:1fr}}.marine-posters{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px}.marine-poster-card{background:rgba(15,12,10,.58);border:1px solid rgba(180,145,75,.22);border-radius:10px;padding:12px}.marine-poster-card img{width:100%;height:430px;object-fit:contain;background:#090909;border-radius:7px;display:block;cursor:pointer}.marine-poster-card h4{margin:10px 0 4px;font-size:18px}.marine-poster-card .small{display:block;margin-bottom:5px}
+</style>
+
+<style id="dice-style">
+.dice-panel{max-width:980px;margin:0 auto}
+.dice-toolbar{display:grid;grid-template-columns:1.4fr 1fr 1fr auto;gap:12px;align-items:end}
+.dice-field{display:flex;flex-direction:column;gap:6px}.dice-field label{font-size:13px;color:var(--muted)}
+.dice-field select,.dice-field input{width:100%;background:#17110d;color:#eadfc9;border:1px solid #6b5031;border-radius:6px;padding:12px;font-family:Georgia,serif;font-size:16px}
+.dice-roll{height:46px;padding:0 22px;font-size:17px;font-weight:bold}
+.dice-result{margin-top:20px;padding:28px;text-align:center;border:1px solid #765534;border-radius:8px;background:radial-gradient(circle at 50% 0%,rgba(198,154,82,.13),transparent 55%),linear-gradient(145deg,#2c2118,#18110d);box-shadow:inset 0 1px rgba(255,255,255,.04),0 8px 22px rgba(0,0,0,.3)}
+.dice-result .formula{font-size:18px;color:#cdb78f}.dice-result .total{font-size:58px;font-weight:bold;color:var(--gold2);line-height:1.05;margin:8px 0;text-shadow:0 2px 7px #000}.dice-result .detail{font-size:16px;color:#ded0b8;min-height:24px}
+.dice-result.rolling .total{animation:dicePulse .35s ease-in-out infinite alternate}
+@keyframes dicePulse{from{transform:scale(.96);opacity:.65}to{transform:scale(1.04);opacity:1}}
+.dice-presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.dice-presets .link{margin:0}
+.dice-history{margin-top:22px}.dice-history-list{display:flex;flex-direction:column;gap:7px}.dice-history-item{display:flex;justify-content:space-between;gap:15px;align-items:center;padding:10px 12px;border:1px solid rgba(180,145,75,.2);border-radius:6px;background:rgba(15,12,10,.45)}.dice-history-item .dh-formula{color:#d7c29d}.dice-history-item .dh-total{font-size:20px;font-weight:bold;color:var(--gold2);white-space:nowrap}.dice-empty{opacity:.65;font-style:italic}
+@media(max-width:800px){.dice-toolbar{grid-template-columns:1fr 1fr}.dice-roll{width:100%}}
+</style>
+
+
+<style id="necro-scene-style">
+.necro-scene-card{border-color:#765534}
+.necro-danger-box{display:flex;flex-direction:column;gap:5px;margin:14px 0;padding:13px 15px;background:linear-gradient(145deg,#3a1713,#21110d);border:1px solid #8a3f32;border-radius:8px;color:#eadfc9}
+.necro-danger-box strong{color:#ef8b78;font-size:17px}
+.necro-scene-images{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:15px}
+.necro-scene-images .card{margin:0}
+.necro-scene-images .thumb{height:230px}
+.necro-timer-panel{margin-top:18px;padding:16px;background:linear-gradient(145deg,#241913,#15100c);border:1px solid #765534;border-radius:9px}
+.necro-timer-head,.necro-solution-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.necro-timer-head strong,.necro-solution-head strong{color:#e0bd79}
+.necro-timer-display{font-size:48px;font-weight:bold;text-align:center;color:#e0bd79;letter-spacing:3px;margin:10px 0;text-shadow:0 2px 8px #000}
+.necro-timer-actions{display:flex;justify-content:center;gap:7px;flex-wrap:wrap}
+.necro-damage-alert{margin-top:12px;padding:10px;border:1px solid #493624;border-radius:6px;background:#211811;text-align:center;color:#d8c5a3}
+.necro-damage-alert.danger{color:#f08b78!important;border-color:#8a3f32!important;background:#321713!important}
+.necro-damage-log{margin-top:8px;max-height:180px;overflow:auto;font-size:12px;color:#cdb99a}
+.necro-damage-log div{padding:5px 7px;border-bottom:1px solid #493624}
+.necro-solution-panel{margin-top:12px;padding:14px;background:#211811;border:1px solid #58432e;border-radius:8px}
+.necro-solution-panel .hidden{display:none}
+@media(max-width:800px){.necro-scene-images{grid-template-columns:1fr}.necro-timer-display{font-size:40px}}
+</style>
+</head>
+<body>
+<div class="app"><aside class="side"><h1>☠️ The Last Heart</h1><div class="nav">
+<button class="act-toggle active" onclick="toggleAct('acte',this)">📖 ACTE <span class="chevron">▾</span></button>
+<div id="acteNav" class="subnav open">
+<button class="subactive" onclick="showActPart('acte',this,'acteNav','acte')">📖 Résumé</button>
+<button onclick="showActPart('acte',this,'acteNav','actePNJ')">👥 PNJ</button>
+<button onclick="showActPart('acte',this,'acteNav','acteQuetes')">📜 Quêtes</button>
+<button onclick="showActPart('acte',this,'acteNav','acteCombats')">⚔️ Combats</button>
+<button onclick="showActPart('acte',this,'acteNav','acteLieux')">🗺️ Lieux</button>
+<button onclick="showActPart('acte',this,'acteNav','acteScenes')">🎬 Scènes</button>
+<button onclick="showActPart('acte',this,'acteNav','acteSons')">🔊 Sons</button>
+<button onclick="showActPart('acte',this,'acteNav','acteMusiques')">🎵 Musiques</button>
+</div>
+<div class="nav-divider"></div><div class="nav-label">🧰 OUTILS MJ</div>
+<button onclick="show('imagesUtiles',this)">🖼️ Images utiles</button>
+<button onclick="show('livre',this)">📕 Livre de Calvinhi</button>
+<button onclick="show('marine',this)">⚓ Marine</button>
+<button onclick="show('inventaire',this)">🎒 Inventaire des joueurs</button>
+<button class="act-toggle" onclick="toggleMenuGroup('boutiquesNav',this)">🏪 Boutiques <span class="chevron">▾</span></button>
+<div id="boutiquesNav" class="subnav">
+<button onclick="show('boutiqueAlchimie',this)">⚗️ Boutique d’alchimie</button>
+<button onclick="show('boutiqueBonCap',this)">🧭 Au Bon Cap</button>
+<button onclick="show('boutiquePort',this)">⚓ Port</button>
+</div>
+<button onclick="show('lanceDes',this)">🎲 Lanceur de dés</button>
+<button onclick="show('competences',this)">🎲 Compétences</button>
+<button onclick="show('musiquesCombat',this)">🎵 Musiques de combat</button>
+<button onclick="show('musiquesBoss',this)">👹 Musiques de boss</button>
+</div></aside>
+<main class="main">
+<section id="acte">
+<h2>📖 ACTE</h2>
+<div id="acteResume" class="card"><h3>📖 Résumé de l'acte</h3><p class="small">Aucun contenu d'acte n'est encore renseigné.</p></div>
+<div id="actePNJ" class="section"><h3>👥 PNJ</h3><div class="card"><p class="small">Section vide — les PNJ de l'acte seront ajoutés ici.</p></div></div>
+<div id="acteQuetes" class="section"><h3>📜 Quêtes</h3><div class="card"><p class="small">Section vide — les quêtes de l'acte seront ajoutées ici.</p></div></div>
+<div id="acteCombats" class="section"><h3>⚔️ Combats</h3><div class="card"><p class="small">Section vide — les combats de l'acte seront ajoutés ici.</p></div></div>
+<div id="acteLieux" class="section"><h3>🗺️ Lieux</h3><div class="card"><p class="small">Section vide — les lieux de l'acte seront ajoutés ici.</p></div></div>
+<div id="acteScenes" class="section"><h3>🎬 Scènes</h3><div class="card"><p class="small">Section vide — les scènes de l'acte seront ajoutées ici.</p></div></div>
+<div id="acteSons" class="section"><h3>🔊 Sons</h3><div class="card"><p class="small">Section vide — les sons propres à l'acte seront ajoutés ici.</p></div></div>
+<div id="acteMusiques" class="section"><h3>🎵 Musiques</h3><div class="card"><p class="small">Section vide — les musiques propres à l'acte seront ajoutées ici.</p></div></div>
+</section>
+<section id="livre" class="hidden">
+<h2>📕 Livre de Calvinhi</h2>
+<div class="card"><h3>Les pages traduites</h3><p>Les pages du livre sont conservées dans leur version illustrée. Clique sur une double-page pour l’agrandir, ou utilise <b>TV</b> pour l’afficher directement aux joueurs.</p></div>
+<div class="grid">
+<div class="card image-card"><img class="thumb book-thumb" src="images/outils-mj/livre/livre_01-02.png" alt="Livre de Calvinhi — pages 1 et 2" onclick="openImage(this.src,'Livre de Calvinhi — pages 1-2',true)"><h3>Pages 1–2</h3></div>
+<div class="card image-card"><img class="thumb book-thumb" src="images/outils-mj/livre/livre_03-04.png" alt="Livre de Calvinhi — pages 3 et 4" onclick="openImage(this.src,'Livre de Calvinhi — pages 3-4',true)"><h3>Pages 3–4</h3></div>
+<div class="card image-card"><img class="thumb book-thumb" src="images/outils-mj/livre/livre_05-06.png" alt="Livre de Calvinhi — pages 5 et 6" onclick="openImage(this.src,'Livre de Calvinhi — pages 5-6',true)"><h3>Pages 5–6</h3></div>
+<div class="card image-card"><img class="thumb book-thumb" src="images/outils-mj/livre/livre_07-08.png" alt="Livre de Calvinhi — pages 7 et 8" onclick="openImage(this.src,'Livre de Calvinhi — pages 7-8',true)"><h3>Pages 7–8</h3></div>
+<div class="card image-card"><img class="thumb book-thumb" src="images/outils-mj/livre/livre_09-10.png" alt="Livre de Calvinhi — pages 9 et 10" onclick="openImage(this.src,'Livre de Calvinhi — pages 9-10',true)"><h3>Pages 9–10</h3></div>
+<div class="card image-card"><img class="thumb book-thumb" src="images/outils-mj/livre/livre_11-12.png" alt="Livre de Calvinhi — pages 11 et 12" onclick="openImage(this.src,'Livre de Calvinhi — pages 11-12',true)"><h3>Pages 11–12</h3></div>
+</div>
+</section>
+
+
+
+<section id="imagesUtiles" class="hidden">
+<h2>🖼️ Images utiles au MJ</h2>
+<p class="small">Bibliothèque générale des images importantes pour la campagne. Les images sont classées par thème et peuvent être agrandies ou affichées directement aux joueurs.</p>
+<div class="section"><h3>🌍 Monde & Cartes</h3><div class="grid">
+<div class="card image-card"><img class="thumb" src="images/outils-mj/cartes/carte_du_monde.png" alt="Carte du monde de Néréa" onclick="openImage(this.src,'Carte du monde de Néréa')"><h3>Carte du monde de Néréa</h3><p>Carte générale des îles de Néréa.</p><button class="link" onclick="openImage('images/outils-mj/cartes/carte_du_monde.png','Carte du monde de Néréa')">🔍 Agrandir</button></div>
+<div class="card image-card"><img class="thumb" src="images/outils-mj/cartes/carte_maritime.png" alt="Carte maritime" onclick="openImage(this.src,'Carte maritime')"><h3>🗺️ Carte maritime</h3><p>Carte maritime de Néréa vendue à Au Bon Cap.</p><button class="link" onclick="openImage('images/outils-mj/cartes/carte_maritime.png','Carte maritime')">🔍 Agrandir</button></div>
+<div class="card image-card"><img class="thumb" src="images/outils-mj/lieux/navire.png" alt="Navire" onclick="openImage(this.src,'Navire')"><h3>🚢 Navire</h3><p>Illustration d’un grand navire à utiliser pour les scènes de voyage et de navigation.</p><button class="link" onclick="openImage('images/outils-mj/lieux/navire.png','Navire')">🔍 Agrandir</button></div>
+</div></div>
+<div class="section"><h3>💎 Objets & Artefacts</h3><div class="grid">
+<div class="card image-card"><img class="thumb" src="images/outils-mj/cartes/boussole.png" alt="Boussole de Néréa" onclick="openImage(this.src,'Boussole de Néréa')"><h3>🧭 Boussole de Néréa</h3><p>Boussole mystérieuse permettant de guider les héros dans leur quête.</p><button class="link" onclick="openImage('images/outils-mj/cartes/boussole.png','Boussole de Néréa')">🔍 Agrandir</button></div>
+<div class="card image-card"><img class="thumb" src="images/outils-mj/objets/contenu_cache.png" alt="Coffre contenant des pierres divines" onclick="openImage(this.src,'Coffre — Pierres divines')"><h3>Coffre — Pierres divines</h3><p>Illustration des pierres divines conservées dans un coffre.</p><button class="link" onclick="openImage('images/outils-mj/objets/contenu_cache.png','Coffre — Pierres divines')">🔍 Agrandir</button></div>
+<div class="card image-card"><img class="thumb" src="images/outils-mj/objets/objet_magique_sous_marin.png" alt="Objet magique sous-marin" onclick="openImage(this.src,'Objet magique sous-marin')"><h3>Objet magique — Grotte sous-marine</h3><p>Objet magique caché sous l'eau dans une grotte sous-marine.</p><button class="link" onclick="openImage('images/outils-mj/objets/objet_magique_sous_marin.png','Objet magique sous-marin')">🔍 Agrandir</button></div>
+<div class="card image-card">
+<img class="thumb" src="images/outils-mj/objets/pierre_appel.png" alt="Pierre d’Appel" onclick="openImage(this.src,'Pierre d’Appel')">
+<h3>💎 Pierre d’Appel</h3>
+<p>Pierre remise par Edric Valecroft si les héros escortent Éléna au QG.</p>
+
+<button class="link" onclick="openImage('images/outils-mj/objets/pierre_appel.png','Pierre d’Appel')">🔍 Agrandir</button>
+</div>
+</div></div>
+
+<div class="section"><h3>📜 Documents & Indices</h3><div class="grid">
+<div class="card image-card"><img class="thumb" src="images/outils-mj/objets/enigme.png" alt="Énigme" onclick="openImage(this.src,'Énigme')"><h3>Énigme</h3><p>Illustration à utiliser lors d'une énigme ou d'une découverte.</p><button class="link" onclick="openImage('images/outils-mj/objets/enigme.png','Énigme')">🔍 Agrandir</button></div>
+<div class="card image-card"><img class="thumb" src="images/outils-mj/livre/livre_complet.png" alt="Livre de Calvinhi" onclick="openImage(this.src,'Livre de Calvinhi')"><h3>Livre de Calvinhi</h3><p>Illustration du livre. Les pages traduites restent disponibles dans la section dédiée au livre.</p><button class="link" onclick="show('livre',document.querySelector('.nav button[onclick*="livre"]'))">📕 Ouvrir le livre</button></div>
+</div></div>
+<div class="section"><h3>⚓ Marine & Amiraux</h3><div class="grid">
+<div class="card image-card"><img class="thumb" src="images/outils-mj/objets/logo_marine.png" alt="Logo de la Marine" onclick="openImage(this.src,'Logo de la Marine')"><h3>Logo de la Marine</h3><p>Emblème de la Marine.</p><button class="link" onclick="openImage('images/outils-mj/objets/logo_marine.png','Logo de la Marine')">🔍 Agrandir</button></div>
+<div class="card image-card"><img class="thumb" src="images/outils-mj/objets/amiraux_sous.png" alt="Affiche des Amiraux" onclick="openImage(this.src,'Affiche des Amiraux')"><h3>Affiche des Amiraux</h3><p>Les quatre Amiraux et leurs subordonnés.</p><button class="link" onclick="openImage('images/outils-mj/objets/amiraux_sous.png','Affiche des Amiraux')">🔍 Agrandir</button></div>
+<div class="card image-card"><img class="thumb" src="images/outils-mj/objets/badge_auguste.png" alt="Badge d'Auguste" onclick="openImage(this.src,'Badge d’Auguste')"><h3>Badge d’Auguste</h3><p>Badge donné par Auguste donnant accès à tous ses restaurants, tavernes et hôtels de Néréa.</p><button class="link" onclick="openImage('images/outils-mj/objets/badge_auguste.png','Badge d’Auguste')">🔍 Agrandir</button></div>
+<div class="card image-card"><img class="thumb" src="images/outils-mj/utiles/logo_amiraux.png" alt="Logo Amiraux" onclick="openImage(this.src,'Logo Amiraux')"><h3>Logo Amiraux</h3><p>Emblème des Amiraux.</p><button class="link" onclick="openImage('images/outils-mj/utiles/logo_amiraux.png','Logo Amiraux')">🔍 Agrandir</button></div>
+</div></div>
+</section>
+
+<section id="competences" class="hidden"><h2>🎲 Compétences — Aide MJ</h2><p class="small">Quand un joueur décrit une action, trouve rapidement la compétence et la caractéristique associée.</p><input class="search" placeholder="Rechercher une action ou une compétence..." oninput="filterCards(this,'competencesGrid')"><div id="competencesGrid" class="grid"><div class="card filterable"><h3><span style="font-size:1.35em;margin-right:7px;">💪</span>Athlétisme <span class="small">(jet Force)</span></h3><p>Escalader, nager, pousser/tirer, sauter ou accomplir un effort physique.</p><p><b>Jet :</b> d20 + modificateur de Force + bonus de maîtrise si compétent.</p></div><div class="card filterable"><h3><span style="font-size:1.35em;margin-right:7px;">🤸</span>Acrobaties <span class="small">(jet Dextérité)</span></h3><p>Garder l’équilibre, éviter une chute, se déplacer avec agilité.</p><p><b>Jet :</b> d20 + modificateur de Dextérité + bonus de maîtrise si compétent.</p></div><div class="card filterable"><h3><span style="font-size:1.35em;margin-right:7px;">🥷</span>Discrétion <span class="small">(jet Dextérité)</span></h3><p>Se cacher, avancer silencieusement ou éviter d’être détecté.</p><p><b>Jet :</b> d20 + modificateur de Dextérité + bonus de maîtrise si compétent.</p></div><div class="card filterable"><h3><span style="font-size:1.35em;margin-right:7px;">🖐️</span>Escamotage <span class="small">(jet Dextérité)</span></h3><p>Voler discrètement, dissimuler un objet ou manipuler avec adresse.</p><p><b>Jet :</b> d20 + modificateur de Dextérité + bonus de maîtrise si compétent.</p></div><div class="card filterable"><h3><span style="font-size:1.35em;margin-right:7px;">🔮</span>Arcanes <span class="small">(jet Intelligence)</span></h3><p>Identifier une magie, un sort ou un objet magique.</p><p><b>Jet :</b> d20 + modificateur de Intelligence + bonus de maîtrise si compétent.</p></div><div class="card filterable"><h3><span style="font-size:1.35em;margin-right:7px;">📜</span>Histoire <span class="small">(jet Intelligence)</span></h3><p>Se rappeler un événement, un lieu, un personnage ou un fait historique.</p><p><b>Jet :</b> d20 + modificateur de Intelligence + bonus de maîtrise si compétent.</p></div><div class="card filterable"><h3><span style="font-size:1.35em;margin-right:7px;">🔎</span>Investigation <span class="small">(jet Intelligence)</span></h3><p>Fouiller méthodiquement, trouver un mécanisme ou analyser des indices.</p><p><b>Jet :</b> d20 + modificateur de Intelligence + bonus de maîtrise si compétent.</p></div><div class="card filterable"><h3><span style="font-size:1.35em;margin-right:7px;">🌿</span>Nature <span class="small">(jet Intelligence)</span></h3><p>Identifier une plante, un animal ou un phénomène naturel.</p><p><b>Jet :</b> d20 + modificateur de Intelligence + bonus de maîtrise si compétent.</p></div><div class="card filterable"><h3><span style="font-size:1.35em;margin-right:7px;">✝️</span>Religion <span class="small">(jet Intelligence)</span></h3><p>Reconnaître un dieu, un symbole religieux ou un culte.</p><p><b>Jet :</b> d20 + modificateur de Intelligence + bonus de maîtrise si compétent.</p></div><div class="card filterable"><h3><span style="font-size:1.35em;margin-right:7px;">🐴</span>Dressage <span class="small">(jet Sagesse)</span></h3><p>Calmer, comprendre ou contrôler le comportement d’un animal.</p><p><b>Jet :</b> d20 + modificateur de Sagesse + bonus de maîtrise si compétent.</p></div><div class="card filterable"><h3><span style="font-size:1.35em;margin-right:7px;">🩺</span>Médecine <span class="small">(jet Sagesse)</span></h3><p>Diagnostiquer une blessure, reconnaître une maladie ou stabiliser un mourant.</p><p><b>Jet :</b> d20 + modificateur de Sagesse + bonus de maîtrise si compétent.</p></div><div class="card filterable"><h3><span style="font-size:1.35em;margin-right:7px;">👁️</span>Perception <span class="small">(jet Sagesse)</span></h3><p>Remarquer un détail, entendre un bruit ou repérer un danger.</p><p><b>Jet :</b> d20 + modificateur de Sagesse + bonus de maîtrise si compétent.</p></div><div class="card filterable"><h3><span style="font-size:1.35em;margin-right:7px;">🧠</span>Perspicacité <span class="small">(jet Sagesse)</span></h3><p>Comprendre les intentions, émotions ou mensonges d’une personne.</p><p><b>Jet :</b> d20 + modificateur de Sagesse + bonus de maîtrise si compétent.</p></div><div class="card filterable"><h3><span style="font-size:1.35em;margin-right:7px;">🌲</span>Survie <span class="small">(jet Sagesse)</span></h3><p>Suivre des traces, trouver de la nourriture ou s’orienter.</p><p><b>Jet :</b> d20 + modificateur de Sagesse + bonus de maîtrise si compétent.</p></div><div class="card filterable"><h3><span style="font-size:1.35em;margin-right:7px;">😈</span>Intimidation <span class="small">(jet Charisme)</span></h3><p>Menacer, faire peur ou imposer sa volonté.</p><p><b>Jet :</b> d20 + modificateur de Charisme + bonus de maîtrise si compétent.</p></div><div class="card filterable"><h3><span style="font-size:1.35em;margin-right:7px;">🗣️</span>Persuasion <span class="small">(jet Charisme)</span></h3><p>Convaincre, négocier, rassurer ou obtenir quelque chose honnêtement.</p><p><b>Jet :</b> d20 + modificateur de Charisme + bonus de maîtrise si compétent.</p></div><div class="card filterable"><h3><span style="font-size:1.35em;margin-right:7px;">🎭</span>Représentation <span class="small">(jet Charisme)</span></h3><p>Chanter, jouer, danser ou captiver un public.</p><p><b>Jet :</b> d20 + modificateur de Charisme + bonus de maîtrise si compétent.</p></div><div class="card filterable"><h3><span style="font-size:1.35em;margin-right:7px;">🎭</span>Tromperie <span class="small">(jet Charisme)</span></h3><p>Mentir, bluffer ou dissimuler ses intentions.</p><p><b>Jet :</b> d20 + modificateur de Charisme + bonus de maîtrise si compétent.</p></div></div><div class="section"><h3>⚡ Situations fréquentes</h3><div class="card"><p><b>Escalader / nager / pousser / tirer</b> → Athlétisme <span class="small">(Force)</span></p><p><b>Équilibre / éviter une chute</b> → Acrobaties <span class="small">(Dextérité)</span></p><p><b>Se cacher / avancer sans bruit</b> → Discrétion <span class="small">(Dextérité)</span></p><p><b>Voler / dissimuler</b> → Escamotage <span class="small">(Dextérité)</span></p><p><b>Repérer / entendre</b> → Perception <span class="small">(Sagesse)</span></p><p><b>Fouiller / analyser un indice</b> → Investigation <span class="small">(Intelligence)</span></p><p><b>Suivre une piste / s’orienter</b> → Survie <span class="small">(Sagesse)</span></p><p><b>Convaincre</b> → Persuasion <span class="small">(Charisme)</span> · <b>Mentir</b> → Tromperie <span class="small">(Charisme)</span> · <b>Menacer</b> → Intimidation <span class="small">(Charisme)</span></p></div></div></section>
+<section id="musiquesCombat" class="hidden">
+<h2>🧰 OUTILS MJ — 🎵 Musiques de combat</h2>
+<div class="card">
+<h3 id="combatMusicTitle">⚔️ Musiques de combat</h3>
+<p style="opacity:.8;">Les morceaux s'enchaînent automatiquement. Chaque morceau est joué une seule fois par cycle, puis la playlist recommence au premier morceau.</p>
+<audio id="combatMusicAudio" controls preload="metadata" style="width:100%;margin:12px 0;"></audio>
+<div style="margin:8px 0;">
+<button class="link" type="button" id="combatMusicPrev">⏮️ Précédent</button>
+<button class="link" type="button" id="combatMusicNext">⏭️ Suivant</button>
+</div>
+<div id="combatMusicNow" style="font-weight:bold;margin:10px 0;"></div>
+<ol id="combatMusicList" style="line-height:1.8;margin-top:8px;"></ol>
+</div>
+</section>
+
+<section id="musiquesBoss" class="hidden">
+<h2>🧰 OUTILS MJ — 👹 Musiques de boss</h2>
+<div class="card">
+<h3 id="bossMusicTitle">👹 Musiques de boss</h3>
+<p style="opacity:.8;">Les morceaux s'enchaînent automatiquement. Chaque morceau est joué une seule fois par cycle, puis la playlist recommence au premier morceau.</p>
+<audio id="bossMusicAudio" controls preload="metadata" style="width:100%;margin:12px 0;"></audio>
+<div style="margin:8px 0;">
+<button class="link" type="button" id="bossMusicPrev">⏮️ Précédent</button>
+<button class="link" type="button" id="bossMusicNext">⏭️ Suivant</button>
+</div>
+<div id="bossMusicNow" style="font-weight:bold;margin:10px 0;"></div>
+<ol id="bossMusicList" style="line-height:1.8;margin-top:8px;"></ol>
+</div>
+</section>
+
+<section id="lanceDes" class="hidden">
+<h2>🎲 Lanceur de dés</h2>
+<div class="dice-panel">
+  <div class="card">
+    <p class="small">Lance rapidement les dés pendant tes parties. Choisis le nombre de dés, le type de dé et un modificateur.</p>
+    <div class="dice-toolbar">
+      <div class="dice-field"><label for="diceCount">Nombre de dés</label><input id="diceCount" type="number" min="1" max="100" step="1" value="1"></div>
+      <div class="dice-field"><label for="diceType">Type de dé</label><select id="diceType"><option value="4">d4</option><option value="6">d6</option><option value="8">d8</option><option value="10">d10</option><option value="12">d12</option><option value="20" selected>d20</option><option value="100">d100</option></select></div>
+      <div class="dice-field"><label for="diceModifier">Modificateur</label><input id="diceModifier" type="number" min="-1000" max="1000" step="1" value="0"></div>
+      <button class="link dice-roll" onclick="rollDice()">🎲 Lancer</button>
+    </div>
+    <div class="dice-presets">
+      <button class="link" onclick="setDicePreset(1,20,0)">d20</button>
+      <button class="link" onclick="setDicePreset(2,20,0)">2d20</button>
+      <button class="link" onclick="setDicePreset(1,100,0)">d100</button>
+      <button class="link" onclick="setDicePreset(2,6,0)">2d6</button>
+      <button class="link" onclick="setDicePreset(4,6,0)">4d6</button>
+      <button class="link" onclick="setDicePreset(1,8,3)">d8 + 3</button>
+    </div>
+  </div>
+  <div id="diceResult" class="dice-result">
+    <div class="formula">Prêt à lancer</div>
+    <div class="total">—</div>
+    <div class="detail">Choisis tes dés puis clique sur « Lancer ».</div>
+  </div>
+  <div class="card dice-history">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="margin:0">📜 Historique des jets</h3><button class="link" onclick="clearDiceHistory()">🗑️ Effacer</button></div>
+    <div id="diceHistoryList" class="dice-history-list" style="margin-top:12px"></div>
+  </div>
+</div>
+</section>
+
+<section id="inventaire" class="hidden">
+<h2>🎒 Inventaire des joueurs</h2>
+<p class="small-note">Les inventaires et les PO sont sauvegardés automatiquement dans ce navigateur. Les quatre joueurs sont affichés ici en permanence.</p>
+<div class="inventory-tvbar"><button class="link" onclick="openInventoryTV()">📺 Afficher les 4 inventaires sur TV</button></div>
+<div class="card campaign-save-card">
+  <h3>💾 Sauvegarde de campagne</h3>
+  <p class="small-note">Exporte les inventaires et les PO des 4 joueurs dans un fichier de campagne. Tu pourras ensuite importer ce fichier dans un autre acte de <b>The Last Heart</b>.</p>
+  <div class="campaign-save-actions">
+    <button class="link" onclick="exportCampaignSave()">💾 Sauvegarder la campagne</button>
+    <button class="link" onclick="document.getElementById('campaignSaveFile').click()">📂 Charger une sauvegarde</button>
+    <input id="campaignSaveFile" type="file" accept=".json,application/json" style="display:none" onchange="importCampaignSave(event)">
+  </div>
+  <div id="campaignSaveStatus" class="small-note"></div>
+</div>
+<div id="playerInventoryGrid" class="player-inventory-grid"></div>
+</section>
+
+<section id="boutiqueAlchimie" class="hidden">
+<h2>⚗️ Boutique d’alchimie</h2>
+<p class="small-note">Les achats retirent automatiquement les PO du joueur sélectionné et ajoutent l’objet à son inventaire. Les changements sont immédiatement synchronisés avec l’affichage TV.</p>
+<div class="shop-toolbar card">
+  <button class="link" onclick="openAlchemyTV()">📺 Afficher la boutique sur TV</button>
+  <label for="shopPlayer">Acheteur :</label>
+  <select id="shopPlayer" onchange="renderAlchemyShop()">
+    <option value="0">Fïnn</option><option value="1">Akio</option><option value="2">Sylas</option><option value="3">Syvens</option>
+  </select>
+  <span>💰 <strong id="shopPlayerPO">0 PO</strong></span>
+  <label for="shopQty">Quantité :</label><input id="shopQty" type="number" min="1" max="99" step="1" value="1">
+</div>
+<div id="shopStatus" class="shop-status"></div>
+<div id="alchemyShopGrid" class="shop-grid"></div>
+</section>
+
+<section id="boutiqueBonCap" class="hidden">
+<h2>🧭 Au Bon Cap</h2>
+<p class="small-note">Matériel d’aventure, de navigation, de survie et d’exploration. Les achats retirent automatiquement les PO du joueur sélectionné et ajoutent l’objet à son inventaire.</p>
+<div class="shop-toolbar card">
+  <button class="link" onclick="openBonCapTV()">📺 Afficher la boutique sur TV</button>
+  <label for="bonCapPlayer">Acheteur :</label>
+  <select id="bonCapPlayer" onchange="renderBonCapShop()">
+    <option value="0">Fïnn</option><option value="1">Akio</option><option value="2">Sylas</option><option value="3">Syvens</option>
+  </select>
+  <span>💰 <strong id="bonCapPlayerPO">0 PO</strong></span>
+  <label for="bonCapQty">Quantité :</label><input id="bonCapQty" type="number" min="1" max="99" step="1" value="1">
+</div>
+<div id="bonCapStatus" class="shop-status"></div>
+<div id="bonCapShopGrid" class="shop-grid"></div>
+</section>
+
+<section id="boutiquePort" class="hidden">
+<h2>⚓ Port</h2>
+<p class="small-note">Tarifs d’accostage, d’amarrage, de stationnement, de réparation et de services portuaires.</p>
+<div class="shop-toolbar card">
+  <button class="link" onclick="openPortTV()">📺 Afficher les tarifs sur TV</button>
+  <label for="portPlayer">Client :</label>
+  <select id="portPlayer" onchange="renderPortShop()">
+    <option value="0">Fïnn</option><option value="1">Akio</option><option value="2">Sylas</option><option value="3">Syvens</option>
+  </select>
+  <span>💰 <strong id="portPlayerPO">0 PO</strong></span>
+  <label for="portQty">Quantité :</label><input id="portQty" type="number" min="1" max="99" step="1" value="1">
+</div>
+<div id="portStatus" class="shop-status"></div>
+<div id="portShopGrid" class="port-grid"></div>
+</section>
+
+<section id="marine" class="hidden">
+  <h2>⚓ Marine</h2>
+  <div class="section">
+    <h3>🖼️ Affiches individuelles</h3>
+    <p class="small">Les affiches originales sont conservées dans leur format vertical. Clique sur une affiche pour l’agrandir ou utilise <b>TV</b> pour l’afficher.</p>
+
+    <h3>🦠 Brumenoire</h3>
+    <div class="marine-posters">
+      <div class="marine-poster-card"><img src="images/outils-mj/marine/kael_draven.png" alt="Kael Draven" onclick="openImage(this.src,'Kael Draven')"><h4>Kael Draven</h4><span class="small">Amiral en chef · Morveth · Maladies</span></div>
+      <div class="marine-poster-card"><img src="images/outils-mj/marine/cassian_blight.png" alt="Cassian Blight" onclick="openImage(this.src,'Cassian Blight')"><h4>Cassian Blight</h4><span class="small">Vice-Amiral · Nexyra · Parasites</span></div>
+      <div class="marine-poster-card"><img src="images/outils-mj/marine/viktor_draal.png" alt="Viktor Draal" onclick="openImage(this.src,'Viktor Draal')"><h4>Viktor Draal</h4><span class="small">Vice-Amiral · Vorakys · Mutation</span></div>
+      <div class="marine-poster-card"><img src="images/outils-mj/marine/elias_morven.png" alt="Elias Morven" onclick="openImage(this.src,'Elias Morven')"><h4>Elias Morven</h4><span class="small">Vice-Amiral · Syrmora · Gaz toxiques</span></div>
+    </div>
+
+    <h3>🌋 Brasécaille</h3>
+    <div class="marine-posters">
+      <div class="marine-poster-card"><img src="images/outils-mj/marine/magnus_ignar.png" alt="Magnus Ignar" onclick="openImage(this.src,'Magnus Ignar')"><h4>Magnus Ignar</h4><span class="small">Amiral · Vulkaroth · Lave</span></div>
+      <div class="marine-poster-card"><img src="images/outils-mj/marine/Braak.png" alt="Braak" onclick="openImage(this.src,'Braak')"><h4>Braak</h4><span class="small">Vice-Amiral · Terragorn · Séismes</span></div>
+      <div class="marine-poster-card"><img src="images/outils-mj/marine/ragnar_pyre.png" alt="Ragnar Pyre" onclick="openImage(this.src,'Ragnar Pyre')"><h4>Ragnar Pyre</h4><span class="small">Vice-Amiral · Gravion · Gravité</span></div>
+      <div class="marine-poster-card"><img src="images/outils-mj/marine/helena_cendre.png" alt="Helena Cendre" onclick="openImage(this.src,'Helena Cendre')"><h4>Helena Cendre</h4><span class="small">Vice-Amirale · Ignara · Flammes</span></div>
+    </div>
+
+    <h3>🌪️ Frosthjem</h3>
+    <div class="marine-posters">
+      <div class="marine-poster-card"><img src="images/outils-mj/marine/Auron_Veyl.png" alt="Auron Veyl" onclick="openImage(this.src,'Auron Veyl')"><h4>Auron Veyl</h4><span class="small">Amiral · Nytheraël · Tempêtes</span></div>
+      <div class="marine-poster-card"><img src="images/outils-mj/marine/cyrus_storme.png" alt="Cyrus Storme" onclick="openImage(this.src,'Cyrus Storme')"><h4>Cyrus Storme</h4><span class="small">Vice-Amiral · Pluvia · Pluie</span></div>
+      <div class="marine-poster-card"><img src="images/outils-mj/marine/liora_ventis.png" alt="Liora Ventis" onclick="openImage(this.src,'Liora Ventis')"><h4>Liora Ventis</h4><span class="small">Contre-Amirale · Nebrya · Brume</span></div>
+      <div class="marine-poster-card"><img src="images/outils-mj/marine/darius_gale.png" alt="Darius Gale" onclick="openImage(this.src,'Darius Gale')"><h4>Darius Gale</h4><span class="small">Contre-Amiral · Aérion · Pression</span></div>
+    </div>
+
+    <h3>🌑 Nocteris</h3>
+    <div class="marine-posters">
+      <div class="marine-poster-card"><img src="images/outils-mj/marine/selene_noctis.png" alt="Selene Noctis" onclick="openImage(this.src,'Selene Noctis')"><h4>Selene Noctis</h4><span class="small">Amiral · Velkhar · Ombres</span></div>
+      <div class="marine-poster-card"><img src="images/outils-mj/marine/silas_umbra.png" alt="Silas Umbra" onclick="openImage(this.src,'Silas Umbra')"><h4>Silas Umbra</h4><span class="small">Vice-Amiral · Erebys · Silence</span></div>
+      <div class="marine-poster-card"><img src="images/outils-mj/marine/nyra_vesper.png" alt="Nyra Vesper" onclick="openImage(this.src,'Nyra Vesper')"><h4>Nyra Vesper</h4><span class="small">Vice-Amirale · Somnara · Cauchemars</span></div>
+      
+    </div>
+  </div>
+</section>
+
+</main></div>
+
+<div id="modal" class="modal"><div class="zoombar"><button onclick="setZoom(1)">100%</button><button onclick="setZoom(Math.min(2.5,zoom+.25))">＋</button><button onclick="setZoom(Math.max(1,zoom-.25))">−</button></div><button class="close" onclick="closeFiche()">✕</button><div class="modalbox" id="ficheBox"><div id="fiche" class="fiche"></div></div></div>
+<div id="imageModal" class="imageModal"><div class="imageBar"><button onclick="closeImage()">✕ Fermer</button><button onclick="openCurrentTV()">📺 TV</button></div><button id="bookPrev" class="bookArrow left" onclick="bookPrev()">‹</button><button id="bookNext" class="bookArrow right" onclick="bookNext()">›</button><img id="bigImage" alt=""></div>
+<script>
+let zoom=1,currentImage='',currentImageTitle='',currentIsBook=false,currentBookIndex=0;
+const bookPages=[
+{src:'images/outils-mj/livre/livre_01-02.png',title:'Livre de Calvinhi — pages 1-2'},
+{src:'images/outils-mj/livre/livre_03-04.png',title:'Livre de Calvinhi — pages 3-4'},
+{src:'images/outils-mj/livre/livre_05-06.png',title:'Livre de Calvinhi — pages 5-6'},
+{src:'images/outils-mj/livre/livre_07-08.png',title:'Livre de Calvinhi — pages 7-8'},
+{src:'images/outils-mj/livre/livre_09-10.png',title:'Livre de Calvinhi — pages 9-10'},
+{src:'images/outils-mj/livre/livre_11-12.png',title:'Livre de Calvinhi — pages 11-12'}
+];
+function setZoom(v){zoom=v;applyZoom()}
+function applyZoom(){document.getElementById('fiche').style.transform=`scale(${zoom})`;document.getElementById('fiche').style.transformOrigin='top center';document.getElementById('fiche').style.width=`${100/zoom}%`}
+function closeFiche(){document.getElementById('modal').classList.remove('open')}
+function openImage(src,title,isBook=false){currentImage=src;currentImageTitle=title||'';currentIsBook=isBook;currentBookIndex=isBook?bookPages.findIndex(p=>p.src===src):-1;openTV(src,currentImageTitle,currentIsBook)}
+
+function showBookPage(index){if(!currentIsBook)return;currentBookIndex=(index+bookPages.length)%bookPages.length;const p=bookPages[currentBookIndex];currentImage=p.src;currentImageTitle=p.title;const img=document.getElementById('bigImage');if(img){img.src=p.src;img.alt=p.title}}
+function bookPrev(){showBookPage(currentBookIndex-1)}
+function bookNext(){showBookPage(currentBookIndex+1)}
+function closeImage(){const modal=document.getElementById('imageModal');if(modal)modal.classList.remove('open');currentIsBook=false;document.getElementById('bookPrev')?.style.setProperty('display','none');document.getElementById('bookNext')?.style.setProperty('display','none')}
+
+let tvWindow=null;
+let tvReadyAt=0;
+const TV_READY_TIMEOUT=6000;
+const tvChannel=('BroadcastChannel' in window)?new BroadcastChannel('theLastHeartTV'):null;
+
+function sendTVMessage(data){
+  if(tvChannel) tvChannel.postMessage(data);
+  if(tvWindow && !tvWindow.closed){
+    try{tvWindow.postMessage(data,'*')}catch(e){}
+    try{tvWindow.focus()}catch(e){}
+    return true;
+  }
+  return Date.now()-tvReadyAt<TV_READY_TIMEOUT;
+}
+if(tvChannel){
+  tvChannel.addEventListener('message',e=>{
+    if(e.data?.type==='theLastHeartTVReady') tvReadyAt=Date.now();
+  });
+}
+setInterval(()=>{if(tvWindow?.closed)tvWindow=null;},1000);
+function openCurrentTV(){if(currentImage)openTV(currentImage,currentImageTitle,currentIsBook)}
+function openTV(src,title,isBook=false){
+  const tvSrc=src.startsWith('images/')?'../'+src:src;
+  const data={type:'theLastHeartTV',src:tvSrc,title:title||'',isBook:!!isBook};
+  if(sendTVMessage(data))return;
+  const url='tv/viewer.html?src='+encodeURIComponent(tvSrc)+'&title='+encodeURIComponent(title||'')+(isBook?'&book=1':'');
+  tvWindow=window.open(url,'theLastHeartTV');
+  if(!tvWindow){alert('Le navigateur bloque la fenêtre TV. Autorise les fenêtres pop-up pour cet outil.');return}
+  tvWindow.focus();
+}
+function openTVPage(page,title){
+  const data={type:'theLastHeartTVPage',page,title:title||''};
+  if(sendTVMessage(data))return;
+  const url='tv/viewer.html?page='+encodeURIComponent(page)+'&pageTitle='+encodeURIComponent(title||'');
+  tvWindow=window.open(url,'theLastHeartTV');
+  if(!tvWindow){alert('Le navigateur bloque la fenêtre TV. Autorise les fenêtres pop-up pour cet outil.');return}
+  tvWindow.focus();
+}
+
+function show(id,btn){document.querySelectorAll('main section').forEach(x=>x.classList.add('hidden'));const target=document.getElementById(id);if(target)target.classList.remove('hidden');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));if(btn)btn.classList.add('active');document.querySelectorAll('.subnav button').forEach(x=>x.classList.remove('subactive'));if(id==='inventaire'&&typeof renderInventories==='function')renderInventories();if(id==='boutiqueAlchimie'&&typeof renderAlchemyShop==='function')renderAlchemyShop();if(id==='boutiqueBonCap'&&typeof renderBonCapShop==='function')renderBonCapShop();if(id==='boutiquePort'&&typeof renderPortShop==='function')renderPortShop();window.scrollTo(0,0)}
+function toggleAct(id,btn){const nav=document.getElementById(id+'Nav');if(!nav)return;const isOpen=nav.classList.toggle('open');btn.classList.toggle('collapsed',!isOpen);show(id,btn)}
+function toggleMenuGroup(navId,btn){const nav=document.getElementById(navId);if(!nav)return;const isOpen=nav.classList.toggle('open');btn.classList.toggle('collapsed',!isOpen)}
+function showActPart(sectionId,btn,navId,targetId){document.querySelectorAll('main section').forEach(x=>x.classList.add('hidden'));const target=document.getElementById(sectionId);if(target)target.classList.remove('hidden');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.subnav button').forEach(x=>x.classList.remove('subactive'));if(btn)btn.classList.add('subactive');const anchor=document.getElementById(targetId);if(anchor)window.scrollTo({top:Math.max(0,anchor.getBoundingClientRect().top+window.scrollY-25),behavior:'smooth'})}
+function openFiche(id){zoom=1;const html=typeof renderFicheContent==='function'?renderFicheContent(id):'';const box=document.getElementById('fiche');if(box)box.innerHTML=html||'<p>Aucune fiche n’est définie pour cet élément.</p>';const modal=document.getElementById('modal');if(modal)modal.classList.add('open');const ficheBox=document.getElementById('ficheBox');if(ficheBox)ficheBox.scrollTop=0;if(typeof applyZoom==='function')applyZoom()}
+const fiches={};
+const combatPresets={};
+function renderFicheContent(id){return renderFichePV(id)}
+function ensureFicheCombat(id){
+ const defs=combatPresets[id]; if(!defs)return;
+ defs.enemies.forEach((d,i)=>{
+   const existing=combatState.enemies.find(e=>e.ficheId===id&&e.ficheIndex===i);
+   if(!existing){
+     combatState.enemies.push({name:d[0],max:d[1],current:d[1],ca:d[2]??'',ficheId:id,ficheIndex:i});
+   }else{
+     existing.name=d[0];
+     existing.max=d[1];
+     existing.ca=d[2]??'';
+     existing.current=Math.max(0,Math.min(Number(existing.max)||0,Number(existing.current)||0));
+   }
+ });
+ saveCombatPV();
+}
+const combatEffects=[
+ {id:'aveugle',name:'Aveuglé',icon:'🕶️',desc:'Ne voit pas. Échoue automatiquement aux tests qui nécessitent la vue ; ses attaques sont désavantagées et les attaques contre lui sont avantagées.'},
+ {id:'charme',name:'Charmé',icon:'💖',desc:'Ne peut pas attaquer le charmeur ni le cibler avec des effets nuisibles ; le charmeur a un avantage sur ses tests sociaux.'},
+ {id:'assourdi',name:'Assourdi',icon:'🔇',desc:'N’entend plus et échoue automatiquement aux tests qui nécessitent l’ouïe.'},
+ {id:'epuisement',name:'Épuisement',icon:'🥵',desc:'Condition à niveaux. En D&D 2024, chaque niveau réduit les jets de d20 et la vitesse ; le niveau 6 est mortel.',level:true},
+ {id:'effraye',name:'Effrayé',icon:'😨',desc:'Désavantage aux tests et attaques tant que la source de peur est visible ; ne peut pas volontairement s’en approcher.'},
+ {id:'agrippe',name:'Agrippé',icon:'🤝',desc:'Vitesse réduite à 0 et déplacement limité par la créature qui agrippe.'},
+ {id:'incapacite',name:'Incapacité',icon:'🚫',desc:'Ne peut pas effectuer d’action, d’action bonus ou de réaction ; sa concentration est interrompue.'},
+ {id:'invisible',name:'Invisible',icon:'👻',desc:'Ne peut normalement pas être vu. Ses attaques sont avantagées et les attaques contre lui sont désavantagées.'},
+ {id:'paralyse',name:'Paralysé',icon:'⚡',desc:'Ne peut pas bouger ou agir normalement ; échoue automatiquement aux sauvegardes de Force et de Dextérité. Les attaques contre lui sont avantagées.'},
+ {id:'petrifie',name:'Pétrifié',icon:'🗿',desc:'Transformé en substance solide, incapable d’agir ou de bouger, avec résistance à tous les dégâts et immunité au poison.'},
+ {id:'empoisonne',name:'Empoisonné',icon:'☠️',desc:'Désavantage aux jets d’attaque et aux tests de caractéristique.'},
+ {id:'a_terre',name:'À terre',icon:'🧎',desc:'Se déplace en rampant. Désavantage à ses attaques ; les attaques de mêlée contre lui sont avantagées.'},
+ {id:'entrave',name:'Entravé',icon:'⛓️',desc:'Vitesse réduite à 0 ; attaques contre lui avantagées, ses attaques et ses sauvegardes de Dextérité désavantagées.'},
+ {id:'etourdi',name:'Étourdi',icon:'💫',desc:'Incapable d’agir normalement, ne peut pas bouger et échoue automatiquement aux sauvegardes de Force et de Dextérité.'},
+ {id:'inconscient',name:'Inconscient',icon:'💤',desc:'Incapable d’agir ou bouger, tombe à terre et lâche ce qu’il tient ; les attaques contre lui sont avantagées.'},
+ {id:'saignement',name:'Saignement',icon:'🩸',desc:'Effet personnalisé de The Last Heart. Permet au MJ de suivre une perte de PV ou un effet de saignement pendant plusieurs tours.'},
+ {id:'brulure',name:'Brûlure',icon:'🔥',desc:'Effet personnalisé. La cible est en feu ou subit des dégâts de feu sur la durée, selon la capacité utilisée.'},
+ {id:'gele',name:'Gelé',icon:'❄️',desc:'Effet personnalisé. La cible est ralentie ou partiellement immobilisée par le froid, selon la capacité utilisée.'},
+ {id:'ralenti',name:'Ralenti',icon:'🐌',desc:'Effet personnalisé. La vitesse ou les possibilités d’action de la cible sont réduites selon la capacité utilisée.'},
+ {id:'silence',name:'Silence',icon:'🔇',desc:'Effet personnalisé. La cible ne peut pas produire de son ou lancer certains sorts nécessitant une composante verbale, selon la règle appliquée.'},
+ {id:'desoriente',name:'Désorienté',icon:'🌫️',desc:'Effet personnalisé. La cible subit un malus ou une gêne à ses actions selon la capacité utilisée.'},
+ {id:'protege',name:'Protégé',icon:'🛡️',desc:'Effet personnalisé positif. La cible bénéficie d’une protection temporaire définie par la capacité utilisée.'},
+ {id:'regeneration',name:'Régénération',icon:'💚',desc:'Effet personnalisé positif. La cible récupère des PV selon la quantité et la fréquence définies par la capacité.'},
+ {id:'avantage',name:'Avantage',icon:'⬆️',desc:'La cible bénéficie d’un avantage sur les jets concernés pendant la durée indiquée.'},
+ {id:'desavantage',name:'Désavantage',icon:'⬇️',desc:'La cible subit un désavantage sur les jets concernés pendant la durée indiquée.'},
+ {id:'resistance',name:'Résistance',icon:'🛡️',desc:'La cible bénéficie d’une résistance à un type de dégâts ou à un effet défini par le MJ.'},
+ {id:'vulnerable',name:'Vulnérable',icon:'💥',desc:'La cible subit davantage de dégâts du type concerné selon la règle ou la capacité utilisée.'},
+ {id:'enrage',name:'Enragé',icon:'😡',desc:'Effet personnalisé. La cible bénéficie des bonus définis par sa rage pendant la durée indiquée.'}
+];
+function getInitiativeEffect(id){return combatEffects.find(e=>e.id===id)||{name:id,icon:'❔',desc:'Effet personnalisé.'}}
+function addInitiativeEffect(id,key,effectId){
+ const state=ensureInitiative(id),p=state&&state.participants.find(x=>x.key===key),def=getInitiativeEffect(effectId);if(!p||!def)return;
+ let turns=0;
+ if(def.level){
+   const entered=prompt('Niveau d’épuisement (1 à 6) :','1');if(entered===null)return;
+   turns=Math.max(1,Math.min(6,Math.floor(Number(entered)||1)));
+ }else{
+   const entered=prompt('Durée en tours (0 = permanent / jusqu’à retrait) :','2');if(entered===null)return;
+   turns=Math.max(0,Math.floor(Number(entered)||0));
+ }
+ if(!Array.isArray(p.effects))p.effects=[];
+ p.effects.push({id:effectId,turns,permanent:turns===0,level:!!def.level});saveInitiative();refreshOpenFichePV(id);
+}
+function removeInitiativeEffect(id,key,index){
+ const state=ensureInitiative(id),p=state&&state.participants.find(x=>x.key===key);if(!p||!Array.isArray(p.effects))return;
+ p.effects.splice(index,1);saveInitiative();refreshOpenFichePV(id);
+}
+function toggleEffectPicker(id,key){
+ const row=document.querySelector('.initiative-row[data-key="'+key+'"]');if(!row)return;
+ document.querySelectorAll('.initiative-effect-picker.open').forEach(x=>x.classList.remove('open'));
+ const picker=row.querySelector('.initiative-effect-picker');if(picker)picker.classList.toggle('open');
+}
+document.addEventListener('click',function(e){
+ if(e.target.closest('.initiative-effect-picker')||e.target.closest('.initiative-add-effect'))return;
+ document.querySelectorAll('.initiative-effect-picker.open').forEach(x=>x.classList.remove('open'));
+});
+function renderInitiativeEffects(id,p){
+ const effects=Array.isArray(p.effects)?p.effects:[];
+ const chips=effects.map((e,i)=>{
+   const def=getInitiativeEffect(e.id),turns=Number(e.turns)||0;
+   const duration=def.level?('Niv. '+turns):(turns>0?turns+' tour'+(turns>1?'s':''):'Permanent');
+   const tip=escapeHTML(def.name+' — '+def.desc+' | Durée : '+duration);
+   return '<span class="initiative-effect-chip" data-tooltip="'+tip+'">'+def.icon+(def.level?turns:(turns>0?turns:''))+'<button type="button" class="initiative-effect-remove" onclick="event.stopPropagation();removeInitiativeEffect(\''+id+'\',\''+p.key+'\','+i+')" title="Retirer">×</button></span>';
+ }).join('');
+ const choices=combatEffects.map(def=>'<button type="button" class="initiative-effect-choice" data-tooltip="'+escapeHTML(def.name+' — '+def.desc)+'" onclick="addInitiativeEffect(\''+id+'\',\''+p.key+'\',\''+def.id+'\')">'+def.icon+' '+escapeHTML(def.name)+'</button>').join('');
+ return '<div class="initiative-effects"><div class="initiative-effect-chips">'+chips+'</div><div class="initiative-effect-picker"><div class="initiative-effect-picker-title">Choisir un effet — survole pour voir le résumé</div>'+choices+'</div></div>';
+}
+function renderInitiativeAddButton(id,p){
+ return '<button type="button" class="initiative-add-effect" onclick="toggleEffectPicker(\''+id+'\',\''+p.key+'\')" title="Ajouter un effet">＋</button>';
+}
+function renderInitiativeTracker(id){
+ const state=ensureInitiative(id);if(!state)return '';
+ const sorted=getInitiativeSorted(id);
+ const rows=sorted.map((p,i)=>{
+   const active=p.key===state.current,dead=isInitiativeDead(id,p);
+   const initiative=p.initiative===''?'':escapeHTML(p.initiative);
+   const rollButton=p.type==='ennemi'
+     ? `<button type="button" class="initiative-roll" onclick="rollCreatureInitiative('${id}','${p.key}')" title="Lancer 1d20">🎲</button>`
+     : '<span class="initiative-roll-placeholder" aria-hidden="true"></span>';
+   return `<div class="initiative-row${active?' active':''}${dead?' dead':''}" data-key="${escapeHTML(p.key)}">
+     <div class="initiative-order">${active?'▶':i+1}</div>
+     <div class="initiative-name-wrap"><div><div class="initiative-name">${escapeHTML(p.name)}</div><div class="initiative-type">${p.type}</div></div></div>
+     <div class="initiative-add-cell">${renderInitiativeAddButton(id,p)}</div>
+     <div class="initiative-effects-cell">${renderInitiativeEffects(id,p)}</div>
+     ${rollButton}
+     <input class="initiative-input" type="number" min="-20" max="100" step="1" value="${initiative}" placeholder="—" onchange="setInitiative('${id}','${p.key}',this.value)" title="Initiative de ${escapeHTML(p.name)}">
+   </div>`;
+ }).join('');
+ return `<aside class="initiative-tracker">
+   <div class="initiative-head"><strong>🎲 Initiative</strong><span class="initiative-round">Round ${state.round}</span></div>
+   <div class="initiative-actions"><button type="button" onclick="nextInitiative('${id}',-1)">◀ Préc.</button><button type="button" onclick="nextInitiative('${id}',1)">Suivant ▶</button></div>
+   <div class="initiative-list">${rows||'<div class="initiative-empty">Aucun combattant.</div>'}</div>
+   <div class="initiative-help">Les 4 joueurs sont toujours présents. Les ennemis correspondent au combat ouvert.</div>
+   <button type="button" class="link" style="width:100%;margin-top:7px;padding:5px 7px;font-size:11px" onclick="resetInitiative('${id}')">↺ Réinitialiser les initiatives</button>
+   <div class="combat-dice-panel">
+     <div class="combat-dice-title">🎲 Lancer de dés — MJ</div>
+     <div class="combat-dice-controls">
+       <input id="combatDiceCount_${id}" type="number" min="1" max="100" step="1" value="1" title="Nombre de dés">
+       <span>d</span>
+       <select id="combatDiceType_${id}" title="Type de dé"><option value="4">4</option><option value="6">6</option><option value="8">8</option><option value="10">10</option><option value="12">12</option><option value="20" selected>20</option><option value="100">100</option></select>
+       <input id="combatDiceMod_${id}" type="number" min="-1000" max="1000" step="1" value="0" title="Modificateur">
+       <button type="button" onclick="rollCombatDice('${id}')">🎲 Lancer</button>
+     </div>
+     <div id="combatDiceResult_${id}" class="combat-dice-result">Prêt.</div>
+   </div>
+   <div class="dps-meter-wrap">${renderDpsMeter(id)}</div>
+ </aside>`;
+}
+function renderFichePV(id){
+ currentOpenFicheId=id;
+ const presetId=id;
+ const ficheId=id;
+ const defs=combatPresets[presetId];if(!defs)return '';
+ ensureFicheCombat(id);
+ const enemies=combatState.enemies.filter(e=>e.ficheId===id);
+ let html='<div class="fiche-combat"><div class="fiche-combat-title"><strong>⚔️ Gestion du combat</strong><span class="small">PV conservés automatiquement</span></div><div class="fiche-combat-layout"><div class="fiche-combat-pv">';
+ if(id==='')html+='<div class="fiche-combat-note">👻 Protection active tant que les 3 invocations sont vivantes : Kaelen ne subit que 1 dégât par attaque ou sort.</div>';
+ enemies.forEach((e,localI)=>{
+   e.ca=defs.enemies[e.ficheIndex]?.[2]??e.ca??'';
+   const max=Math.max(0,Number(e.max)||0),cur=Math.max(0,Math.min(max,Number(e.current)||0));e.max=max;e.current=cur;
+   const pct=max?Math.max(0,Math.min(100,cur/max*100)):0,dead=cur<=0;
+   const state=ensureInitiative(id),part=state&&state.participants&&state.participants.find(p=>p.key==='enemy_'+e.ficheIndex);
+   const effects=Array.isArray(part?.effects)?part.effects:[];
+   const effectHTML=effects.length?effects.map(x=>{const d=getInitiativeEffect(x.id),t=Number(x.turns)||0;const duration=d.level?'Niv. '+t:(t>0?t+' tour'+(t>1?'s':''):'Permanent');return '<span class="fiche-effect-chip">'+d.icon+' '+escapeHTML(d.name)+' <small>'+duration+'</small></span>'}).join(''):'<span class="fiche-no-effect">Aucun effet</span>';
+   const speed=''; html+='<div class="fiche-enemy-block'+(dead?' fiche-dead':'')+'"><div class="fiche-enemy-name">'+escapeHTML(e.name)+'</div><div class="fiche-enemy-meta"><span class="fiche-enemy-ca">🛡️ CA <strong class="fiche-enemy-ca-value">'+escapeHTML(e.ca)+'</strong></span><span>🏃 '+speed+'</span><span>❤️ '+cur+' / '+max+' PV</span></div><div class="fiche-pv-row"><div class="fiche-pv-current">'+cur+' / '+max+' PV</div><div class="fiche-pv-bar"><div class="fiche-pv-fill" style="width:'+pct+'%;background:'+(pct<=25?'#9b3d3d':pct<=50?'#b1843c':'#6e9f4b')+'"></div></div></div><div class="fiche-effects-summary">'+effectHTML+'</div><div class="fiche-damage"><label>Dégâts :</label><input id="ficheDamage_'+id+'_'+localI+'" type="number" min="0" step="1" placeholder="ex. 17" onkeydown="if(event.key===\'Enter\')applyFicheDamage(\''+id+'\','+localI+')"><button class="link" onclick="applyFicheDamage(\''+id+'\','+localI+')">💥 Appliquer</button><button class="link" onclick="healFicheEnemy(\''+id+'\','+localI+')">💚 Soin</button><button class="link" onclick="resetFicheEnemy(\''+id+'\','+localI+')">🔄 PV max</button></div></div>';
+ });
+ const targetIndex=getCombatTarget(id);
+ const playerCards=combatPlayerNames.map((name,i)=>{
+   const p=combatPlayers[i]||{name:name,current:'',max:'',ca:'',temp:0};
+   const cur=p.current===''?'':Math.max(0,Number(p.current)||0),max=p.max===''?'':Math.max(0,Number(p.max)||0),temp=Math.max(0,Math.floor(Number(p.temp)||0));
+   const pct=max!==''&&max>0?Math.max(0,Math.min(100,cur/max*100)):0;
+   const cls=(max!==''?(pct<=25?' player-critical':pct<=50?' player-low':''):'')+(targetIndex===i?' combat-target':'');
+   const damage=combatDamageState[id+'_'+i]||{};
+   const damagePanel=damage.actual!==undefined
+     ? '<div class="combat-damage-memory">💥 <span>Derniers dégâts subis :</span> <strong>'+damage.actual+'</strong></div>'
+     : '';
+   return '<div class="combat-player-card'+cls+'" onclick="if(!event.target.closest(\'input,button\'))setCombatTarget(\''+id+'\','+i+')" title="Cliquer pour sélectionner '+escapeHTML(name)+' comme cible"><div class="combat-player-head"><span class="combat-player-name">👤 '+escapeHTML(name)+(targetIndex===i?'<span class="combat-player-target-badge">🎯 CIBLE</span>':'')+'</span><span class="combat-player-stats"><label>🛡️ <input type="number" min="0" max="100" value="'+(p.ca===''?'':Number(p.ca))+'" onchange="setCombatPlayerStat('+i+',\'ca\',this.value)" title="CA de '+escapeHTML(name)+'"> CA</label></span></div><div class="combat-player-stats"><label>❤️ <input type="number" min="0" value="'+cur+'" onchange="setCombatPlayerStat('+i+',\'current\',this.value)" title="PV actuels de '+escapeHTML(name)+'"> / <input type="number" min="0" value="'+max+'" onchange="setCombatPlayerStat('+i+',\'max\',this.value)" title="PV maximum de '+escapeHTML(name)+'"> PV</label><div class="combat-temp-row"><label>🛡️ PV temp.</label><input type="number" min="0" value="'+temp+'" onchange="setCombatPlayerStat('+i+',\'temp\',this.value)" title="PV temporaires de '+escapeHTML(name)+'"></div></div>'+(max!==''?'<div class="combat-player-bar"><div class="combat-player-fill" style="width:'+pct+'%"></div></div>':'')+damagePanel+'</div>'; }).join('');
+ html+='<div class="combat-monster-sheet">'+fiches[ficheId]+'</div></div><div class="combat-right-panel">'+renderCombatTargetBanner(id)+'<div class="combat-players-panel"><div class="combat-players-title"><strong>👥 Joueurs — PV / CA / PV temporaires / effets</strong><span class="small">Clique sur un joueur pour le cibler</span></div><div class="combat-player-grid">'+playerCards+'</div></div>'+renderInitiativeTracker(id)+'</div></div></div>';
+saveCombatPV();saveCombatPlayers();return html;
+}
+let currentOpenFicheId='';
+let doubleClawState=JSON.parse(localStorage.getItem('theLastHeartDoubleClawState')||'{}');
+function saveDoubleClawState(){localStorage.setItem('theLastHeartDoubleClawState',JSON.stringify(doubleClawState))}
+
+function refreshOpenFichePV(id){const f=document.getElementById('fiche');if(!f)return;const panel=f.querySelector('.fiche-combat');if(!panel)return;const tmp=document.createElement('div');tmp.innerHTML=renderFichePV(id);const old=panel;old.replaceWith(tmp.firstElementChild);applyZoom()}
+function applyFicheDamage(id,i){const e=combatState.enemies.filter(x=>x.ficheId===id)[i];if(!e)return;const input=document.getElementById(`ficheDamage_${id}_${i}`);let dmg=Math.max(0,Math.floor(Number(input?.value)||0));const actualDamage=Math.min(dmg,Math.max(0,Number(e.current)||0));e.current=Math.max(0,e.current-dmg);if(actualDamage>0)registerCombatEvent(id,'damage',actualDamage);if(input)input.value='';saveCombatPV();refreshOpenFichePV(id)}
+function healFicheEnemy(id,i){const e=combatState.enemies.filter(x=>x.ficheId===id)[i];if(!e)return;const input=document.getElementById(`ficheDamage_${id}_${i}`);const amount=Math.max(0,Math.floor(Number(input?.value)||0));e.current=Math.min(e.max,e.current+amount);if(input)input.value='';saveCombatPV();refreshOpenFichePV(id)}
+function resetFicheEnemy(id,i){const e=combatState.enemies.filter(x=>x.ficheId===id)[i];if(!e)return;e.current=e.max;saveCombatPV();refreshOpenFichePV(id)}
+
+function rollInlineAttack(modifier,button){
+ const id=currentOpenFicheId,targetIndex=getCombatTarget(id),out=button?.parentElement?.querySelector('.combat-attack-result');
+ if(targetIndex===null){if(out){out.className='combat-attack-result attack-none';out.innerHTML='<b>⚠️ Sélectionne d’abord un joueur cible</b>'}return;}
+ const target=combatPlayers[targetIndex],ca=target.ca===''?null:Number(target.ca);
+ if(ca===null||!Number.isFinite(ca)){if(out){out.className='combat-attack-result attack-none';out.innerHTML='<b>⚠️ CA de '+escapeHTML(target.name)+' non renseignée</b>'}return;}
+ const roll=Math.floor(Math.random()*20)+1,total=roll+Number(modifier||0),hit=roll===20||roll!==1&&total>=ca;
+ if(out){out.className='combat-attack-result '+(hit?'attack-hit':'attack-miss');out.innerHTML='<b>'+total+' vs CA '+ca+' — '+(hit?'🟢 RÉUSSITE':'🔴 RATÉ')+'</b> <span class="inline-dice-detail">('+roll+(modifier?' '+(modifier>0?'+ ':'− ')+Math.abs(modifier):'')+')</span>'+ (roll===20?' <b>💥 Critique !</b>':roll===1?' <b>❌ Échec critique</b>':'');out.dataset.hit=hit?'1':'0';}
+ combatAttackState[id]={targetIndex,hit,roll,total,ca};saveCombatAttackState();
+ const attackLabel=String(button?.textContent||'').toLowerCase();
+ 
+}
+function rollInlineDice(count,sides,modifier,button){
+ const buttonLabel=String(button?.textContent||'').toLowerCase();
+ if(buttonLabel.includes('dégâts supplémentaires')){
+   const id=currentOpenFicheId;
+   const key=id+'_ '+getCombatTarget(id);
+   const cleanKey=id+'_'+getCombatTarget(id);
+   const dc=doubleClawState[cleanKey];
+   const out=button?.parentElement?.querySelector('.inline-dice-result');
+   if(id!==''||!dc||dc.targetIndex===null||!dc.griffe1||!dc.griffe2){
+     if(out)out.innerHTML='<b>⚠️ Les 2 Griffes doivent avoir touché la même cible.</b>';
+     return;
+   }
+   const rolls=[];for(let i=0;i<2;i++)rolls.push(Math.floor(Math.random()*8)+1);
+   const total=rolls[0]+rolls[1];
+   const result=applyCombatPlayerDamage(dc.targetIndex,total);
+   combatDamageState[id+'_'+dc.targetIndex]={actual:total};saveCombatDamageState();
+   if(out)out.innerHTML='<b>'+total+'</b> <span class="inline-dice-detail">('+rolls.join(' + ')+') → 🛡️ -'+result.tempLost+' / ❤️ -'+result.hpLost+'</span>';
+   delete doubleClawState[cleanKey];saveDoubleClawState();
+   return;
+ }
+
+ const attack=combatAttackState[currentOpenFicheId];
+ const save=combatSaveState[currentOpenFicheId];
+ const isDamageButton=String(button?.textContent||'').toLowerCase().includes('dégâts');
+ const isCritical=!!(isDamageButton&&attack?.hit&&attack?.roll===20);
+ const diceCount=Math.max(1,Number(count)||1)*(isCritical?2:1);
+ const rolls=[];for(let i=0;i<diceCount;i++)rolls.push(Math.floor(Math.random()*sides)+1);
+ let total=rolls.reduce((a,b)=>a+b,0)+Number(modifier||0);
+ const saveApplies=isDamageButton&&save&&save.targetIndex!==undefined&&save.result==='success';
+ if(saveApplies)total=Math.floor(total/2);
+ const detail=rolls.join(' + ')+(modifier?(' '+(modifier>0?'+':'-')+' '+Math.abs(modifier)):'');
+ const out=button?.parentElement?.querySelector('.inline-dice-result');
+ if(out)out.innerHTML='<b>'+total+'</b> <span class="inline-dice-detail">('+(isCritical?'💥 CRITIQUE · ':'')+(saveApplies?'🟢 DEMI-DÉGÂTS · ':'')+detail+')</span>';
+ const p=button?.closest('p'),attackResult=p?.querySelector('.combat-attack-result');
+ if(isDamageButton&&((attack?.hit&&attack.targetIndex!==undefined)||(save?.targetIndex!==undefined&&save?.result))){
+   const targetIndex=attack?.hit?attack.targetIndex:save.targetIndex;
+   const result=applyCombatPlayerDamage(targetIndex,total);
+   combatDamageState[currentOpenFicheId+'_'+targetIndex]={actual:total};
+   saveCombatDamageState();
+   if(out)out.innerHTML+='<span class="combat-auto-damage"> → 🛡️ -'+result.tempLost+' / ❤️ -'+result.hpLost+'</span>';
+   if(attackResult)attackResult.dataset.hit='0';if(attack?.hit){attack.hit=false;saveCombatAttackState()} if(save){delete combatSaveState[currentOpenFicheId];saveCombatSaveState();}
+ }
+}
+function rollInlineDiceMulti(parts,button){
+ const groups=Array.isArray(parts)?parts:[];
+ const attack=combatAttackState[currentOpenFicheId];
+ const save=combatSaveState[currentOpenFicheId];
+ const isDamageButton=String(button?.textContent||'').toLowerCase().includes('dégâts');
+ const isCritical=!!(isDamageButton&&attack?.hit&&attack?.roll===20);
+ const rolls=[];
+ let total=0;
+ groups.forEach(group=>{
+   const baseCount=Math.max(1,Math.floor(Number(group?.[0])||1));
+   const count=baseCount*(isCritical?2:1);
+   const sides=Math.max(2,Math.floor(Number(group?.[1])||20));
+   const modifier=Number(group?.[2])||0;
+   const groupRolls=[];
+   for(let i=0;i<count;i++){
+     const r=Math.floor(Math.random()*sides)+1;
+     groupRolls.push(r);rolls.push(r);
+   }
+   total+=groupRolls.reduce((a,b)=>a+b,0)+modifier;
+ });
+ const saveApplies=isDamageButton&&save&&save.targetIndex!==undefined&&save.result==='success';
+ if(saveApplies)total=Math.floor(total/2);
+ const detail=groups.map(group=>{
+   const baseCount=Math.max(1,Math.floor(Number(group?.[0])||1));
+   const count=baseCount*(isCritical?2:1);
+   const sides=Math.max(2,Math.floor(Number(group?.[1])||20));
+   const modifier=Number(group?.[2])||0;
+   return count+'d'+sides+(modifier?(modifier>0?' + ':' - ')+Math.abs(modifier):'');
+ }).join(' + ');
+ const out=button?.parentElement?.querySelector('.inline-dice-result');
+ if(out)out.innerHTML='<b>'+total+'</b> <span class="inline-dice-detail">('+(isCritical?'💥 CRITIQUE · ':'')+detail+')</span>';
+ const p=button?.closest('p'),attackResult=p?.querySelector('.combat-attack-result');
+ if(isDamageButton&&((attack?.hit&&attack.targetIndex!==undefined)||(save?.targetIndex!==undefined&&save?.result))){
+   const targetIndex=attack?.hit?attack.targetIndex:save.targetIndex;
+   const result=applyCombatPlayerDamage(targetIndex,total);
+   combatDamageState[currentOpenFicheId+'_'+targetIndex]={actual:total};
+   saveCombatDamageState();
+   if(out)out.innerHTML+='<span class="combat-auto-damage"> → 🛡️ -'+result.tempLost+' / ❤️ -'+result.hpLost+'</span>';
+   if(attackResult)attackResult.dataset.hit='0';if(attack?.hit){attack.hit=false;saveCombatAttackState()} if(save){delete combatSaveState[currentOpenFicheId];saveCombatSaveState();}
+ }
+}
+function rollCombatDice(id){
+ const count=Math.max(1,Math.min(100,Math.floor(Number(document.getElementById('combatDiceCount_'+id)?.value)||1)));
+ const sides=Math.max(2,Number(document.getElementById('combatDiceType_'+id)?.value)||20);
+ const modifier=Math.max(-1000,Math.min(1000,Math.floor(Number(document.getElementById('combatDiceMod_'+id)?.value)||0)));
+ const rolls=Array.from({length:count},()=>Math.floor(Math.random()*sides)+1),total=rolls.reduce((a,b)=>a+b,0)+modifier;
+ const detail=rolls.join(' + ')+(modifier?(' '+(modifier>0?'+':'−')+' '+Math.abs(modifier)):'');
+ const result=document.getElementById('combatDiceResult_'+id);if(result)result.innerHTML='<b>'+diceFormula(count,sides,modifier)+'</b> → <strong>'+total+'</strong><div class="small">'+detail+'</div>';
+}
+// ===== Lanceur de dés =====
+
+let diceHistory=JSON.parse(localStorage.getItem('theLastHeartDiceHistory')||'[]');
+function diceFormula(count,sides,modifier){return `${count}d${sides}${modifier>0?' + '+modifier:modifier<0?' - '+Math.abs(modifier):''}`}
+function setDicePreset(count,sides,modifier){document.getElementById('diceCount').value=count;document.getElementById('diceType').value=sides;document.getElementById('diceModifier').value=modifier;rollDice()}
+function rollDice(){
+ const count=Math.max(1,Math.min(100,Math.floor(Number(document.getElementById('diceCount').value)||1)));
+ const sides=Math.max(2,Number(document.getElementById('diceType').value)||20);
+ const modifier=Math.max(-1000,Math.min(1000,Math.floor(Number(document.getElementById('diceModifier').value)||0)));
+ document.getElementById('diceCount').value=count;document.getElementById('diceModifier').value=modifier;
+ const result=document.getElementById('diceResult');result.classList.add('rolling');
+ const rolls=Array.from({length:count},()=>Math.floor(Math.random()*sides)+1);
+ const total=rolls.reduce((a,b)=>a+b,0)+modifier;
+ const formula=diceFormula(count,sides,modifier);
+ const detail=rolls.join(' + ')+(modifier?` ${modifier>0?'+':'−'} ${Math.abs(modifier)}`:'')+` = ${total}`;
+ setTimeout(()=>{
+   result.classList.remove('rolling');
+   result.innerHTML=`<div class="formula">${formula}</div><div class="total">${total}</div><div class="detail">${detail}</div>`;
+ },180);
+ diceHistory.unshift({formula,total,detail,time:new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})});
+ diceHistory=diceHistory.slice(0,20);localStorage.setItem('theLastHeartDiceHistory',JSON.stringify(diceHistory));renderDiceHistory();
+}
+function renderDiceHistory(){
+ const box=document.getElementById('diceHistoryList');if(!box)return;
+ if(!diceHistory.length){box.innerHTML='<div class="dice-empty">Aucun jet pour le moment.</div>';return}
+ box.innerHTML=diceHistory.map((x,i)=>`<div class="dice-history-item"><span><span class="dh-formula">${escapeHTML(x.formula)}</span><br><span class="small">${escapeHTML(x.time)} · ${escapeHTML(x.detail)}</span></span><span class="dh-total">${x.total}</span></div>`).join('');
+}
+function clearDiceHistory(){if(!diceHistory.length)return;if(!confirm('Effacer tout l’historique des jets ?'))return;diceHistory=[];localStorage.removeItem('theLastHeartDiceHistory');renderDiceHistory()}
+function initDice(){['diceCount','diceModifier'].forEach(id=>document.getElementById(id)?.addEventListener('keydown',e=>{if(e.key==='Enter')rollDice()}));renderDiceHistory()}
+initDice();
+
+const potionIconMap={"Potion de soins":"images/outils-mj/potions/soins.png","Potion de soins supérieure":"images/outils-mj/potions/soins_superieure.png","Potion de soins suprême":"images/outils-mj/potions/soins_supreme.png","Potion de respiration aquatique":"images/outils-mj/potions/respiration_aquatique.png","Potion d\'escalade":"images/outils-mj/potions/escalade.png","Potion de croissance":"images/outils-mj/potions/croissance.png","Potion de résistance":"images/outils-mj/potions/resistance.png","Potion d\'amitié animale":"images/outils-mj/potions/amitie_animale.png","Potion de souffle de feu":"images/outils-mj/potions/souffle_de_feu.png","Potion d\'héroïsme":"images/outils-mj/potions/heroisme.png","Potion de forme gazeuse":"images/outils-mj/potions/forme_gazeuse.png","Potion de clairvoyance":"images/outils-mj/potions/clairvoyance.png","Potion de lecture des pensées":"images/outils-mj/potions/lecture_des_pensees.png","Potion d\'invisibilité":"images/outils-mj/potions/invisibilite.png","Potion d\'invulnérabilité":"images/outils-mj/potions/invulnerabilite.png","Potion de vitesse":"images/outils-mj/potions/vitesse.png","Potion de vitalité":"images/outils-mj/potions/vitalite.png"};
+function getPotionIcon(name){ return potionIconMap[String(name)] || ''; }
+const equipmentIconMap={
+ 'Kit d’escalade':'images/outils-mj/equipement/kit_escalade.png','Corde en soie (15 m)':'images/outils-mj/equipement/corde_soie.png','Grappin':'images/outils-mj/equipement/grappin.png','Matériel de pêche':'images/outils-mj/equipement/materiel_peche.png','Outils de navigateur':'images/outils-mj/equipement/outils_navigateur.png','Longue-vue':'images/outils-mj/equipement/longue_vue.png','Kit de soins':'images/outils-mj/equipement/kit_soins.png','Menottes':'images/outils-mj/equipement/menottes.png','Pied-de-biche':'images/outils-mj/equipement/pied_de_biche.png','Bloc et palan':'images/outils-mj/equipement/bloc_et_palan.png','Pitons ×10':'images/outils-mj/equipement/pitons.png','Miroir en acier':'images/outils-mj/equipement/miroir_acier.png','Lanterne à capuchon':'images/outils-mj/equipement/lanterne_capuchon.png','Lanterne à faisceau':'images/outils-mj/equipement/lanterne_faisceau.png','Perche (3 m)':'images/outils-mj/equipement/perche.png','Outre':'images/outils-mj/equipement/outre.png','Tente pour deux personnes':'images/outils-mj/equipement/tente_2_personnes.png','Sac à dos':'images/outils-mj/equipement/sac_a_dos.png','Sacoche':'images/outils-mj/equipement/sacoche.png','Carte maritime':'images/outils-mj/equipement/carte_maritime.png'};
+function getEquipmentIcon(name){ return equipmentIconMap[String(name)] || ''; }
+const lootItemIcons={};
+function getItemIcon(name){ return lootItemIcons[String(name)] || getPotionIcon(name) || getEquipmentIcon(name) || ''; }
+// ===== Inventaires des joueurs =====
+const inventoryPlayers=['Fïnn','Akio','Sylas','Syvens'];
+function getInventoryItemEffect(name){
+ const potions=window.alchemyPotions || [];
+ const potion=potions.find(x=>x.name.toLowerCase()===String(name).toLowerCase()) || null;
+ return potion ? potion.effect : '';
+}
+function inventoryEffectHTML(name){
+ const effect=getInventoryItemEffect(name); return effect ? `<div class="inventory-item-effect">${escapeHTML(effect)}</div>` : '';
+}
+
+const inventoryKey='theLastHeartPlayerInventories';
+let playerInventories=JSON.parse(localStorage.getItem(inventoryKey)||'null');
+if(!Array.isArray(playerInventories)||playerInventories.length!==inventoryPlayers.length){
+ playerInventories=inventoryPlayers.map(name=>({name,po:0,items:[]}));
+}else{playerInventories=playerInventories.map((p,i)=>({name:inventoryPlayers[i],po:Number(p.po)||0,items:Array.isArray(p.items)?p.items:[]}));}
+let inventoryTVWindow=null;
+function broadcastInventories(){
+ const payload={type:'theLastHeartInventories',data:playerInventories};
+ try{if(inventoryTVWindow && !inventoryTVWindow.closed) inventoryTVWindow.postMessage(payload,'*');}catch(e){}
+ try{if('BroadcastChannel' in window){ if(!window._inventoryChannel) window._inventoryChannel=new BroadcastChannel('theLastHeartInventories'); window._inventoryChannel.postMessage(payload); }}catch(e){}
+}
+function saveInventories(){localStorage.setItem(inventoryKey,JSON.stringify(playerInventories));broadcastInventories();}
+function setCampaignSaveStatus(message,isError=false){
+ const el=document.getElementById('campaignSaveStatus');
+ if(!el)return;
+ el.textContent=message;
+ el.style.color=isError?'#df8b8b':'#bda98b';
+}
+function exportCampaignSave(){
+ const save={
+   format:'The Last Heart — Sauvegarde de campagne',
+   version:1,
+   acte:'base',
+   savedAt:new Date().toISOString(),
+   players:playerInventories.map(p=>({
+     name:p.name,
+     po:Number(p.po)||0,
+     items:Array.isArray(p.items)?p.items.map(it=>({name:String(it.name||''),qty:Math.max(0,Math.floor(Number(it.qty)||0))})).filter(it=>it.name&&it.qty>0):[]
+   }))
+ };
+ const blob=new Blob([JSON.stringify(save,null,2)],{type:'application/json;charset=utf-8'});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');
+ a.href=url;
+ a.download='The_Last_Heart_Sauvegarde.json';
+ document.body.appendChild(a);
+ a.click();
+ a.remove();
+ URL.revokeObjectURL(url);
+ setCampaignSaveStatus('✅ Sauvegarde créée : The_Last_Heart_Sauvegarde.json');
+}
+function importCampaignSave(event){
+ const file=event.target.files&&event.target.files[0];
+ if(!file)return;
+ const input=event.target;
+ const reader=new FileReader();
+ reader.onload=()=>{
+   try{
+     const data=JSON.parse(String(reader.result||''));
+     if(!data||data.format!=='The Last Heart — Sauvegarde de campagne'||!Array.isArray(data.players)){
+       throw new Error('Fichier de sauvegarde The Last Heart invalide.');
+     }
+     const byName=new Map(data.players.map(p=>[String(p.name),p]));
+     playerInventories=inventoryPlayers.map(name=>{
+       const source=byName.get(name)||{};
+       return {
+         name,
+         po:Math.max(0,Math.round((Number(source.po)||0)*100)/100),
+         items:Array.isArray(source.items)?source.items.map(it=>({
+           name:String(it?.name||'').trim(),
+           qty:Math.max(0,Math.floor(Number(it?.qty)||0))
+         })).filter(it=>it.name&&it.qty>0):[]
+       };
+     });
+     saveInventories();
+     renderInventories();
+     if(typeof renderAlchemyShop==='function')renderAlchemyShop();
+     if(typeof renderBonCapShop==='function')renderBonCapShop();
+     if(typeof renderPortShop==='function')renderPortShop();
+     setCampaignSaveStatus('✅ Sauvegarde chargée avec succès.');
+   }catch(err){
+     console.error(err);
+     setCampaignSaveStatus('❌ Impossible de charger cette sauvegarde.',true);
+   }finally{
+     input.value='';
+   }
+ };
+ reader.onerror=()=>{setCampaignSaveStatus('❌ Impossible de lire le fichier.',true);input.value='';};
+ reader.readAsText(file);
+}
+function renderInventories(){
+ const grid=document.getElementById('playerInventoryGrid'); if(!grid)return;
+ grid.innerHTML=playerInventories.map((p,i)=>`<div class="player-inventory-card">
+ <div class="player-name-row"><img class="player-avatar" src="${['images/outils-mj/joueurs/finn.png','images/outils-mj/joueurs/akio.png','images/outils-mj/joueurs/sylas.png','images/outils-mj/joueurs/syvens.png'][i]}" alt="${escapeHTML(p.name)}"><h3>${escapeHTML(p.name)}</h3></div>
+ <div class="po-row"><span>💰</span><b>PO :</b><input type="number" min="0" step="0.01" value="${p.po}" oninput="setPlayerPO(${i},this.value)"></div>
+ <div class="inventory-list">${p.items.length?p.items.map((it,j)=>`<div class="inventory-item"><div class="inventory-item-main"><span class="inventory-item-name">${getItemIcon(it.name)?`<img class="potion-icon-small" src="${getItemIcon(it.name)}" alt="">`:'🎒 '}${escapeHTML(it.name)}</span><div class="inventory-qty-row"><button class="link" onclick="changeItemQty(${i},${j},-1)">−</button><input class="inventory-qty" type="number" min="0" step="1" value="${Number(it.qty)||0}" onchange="setItemQty(${i},${j},this.value)"><button class="link" onclick="changeItemQty(${i},${j},1)">+</button></div>${inventoryEffectHTML(it.name)}</div><span class="inventory-actions"><button class="link danger" onclick="removeItem(${i},${j})" title="Supprimer l'objet">🗑️</button></span></div>`).join(''):'<div class="inventory-empty">Aucun objet.</div>'}</div>
+ <div class="inventory-add"><input id="invItem_${i}" placeholder="Nom de l'objet" onkeydown="if(event.key==='Enter')addItem(${i})"><button class="link" onclick="addItem(${i})">➕ Ajouter</button></div>
+ </div>`).join('');
+
+}
+function setPlayerPO(i,v){const n=Math.max(0,Math.round((Number(v)||0)*100)/100);playerInventories[i].po=n;saveInventories();}
+function addItem(i){const input=document.getElementById('invItem_'+i);if(!input)return;const name=input.value.trim();if(!name)return;const existing=playerInventories[i].items.find(x=>x.name.toLowerCase()===name.toLowerCase());if(existing)existing.qty++;else playerInventories[i].items.push({name,qty:1});input.value='';saveInventories();renderInventories();}
+function changeItemQty(i,j,d){const it=playerInventories[i]?.items[j];if(!it)return;it.qty=Math.max(0,(Number(it.qty)||0)+d);if(it.qty<=0)playerInventories[i].items.splice(j,1);saveInventories();renderInventories();}
+function setItemQty(i,j,v){const it=playerInventories[i]?.items[j];if(!it)return;const qty=Math.max(0,Math.floor(Number(v)||0));if(qty<=0)playerInventories[i].items.splice(j,1);else it.qty=qty;saveInventories();renderInventories();}
+function removeItem(i,j){if(!playerInventories[i]?.items[j])return;playerInventories[i].items.splice(j,1);saveInventories();renderInventories();}
+function openInventoryTV(){openTVPage('inventaire_tv.html','Inventaire des joueurs');inventoryTVWindow=tvWindow;setTimeout(broadcastInventories,500)}
+function initInventories(){renderInventories();}
+initInventories();
+// ===== Boutique d'alchimie =====
+const alchemyPotions=[
+ {name:'Potion de soins',price:50,effect:'Rend 2d4 + 2 PV.'},
+ {name:'Potion de soins supérieure',price:150,effect:'Rend 4d4 + 4 PV.'},
+ {name:'Potion de soins suprême',price:450,effect:'Rend 8d4 + 8 PV.'},
+ {name:'Potion de respiration aquatique',price:100,effect:'Permet de respirer sous l\'eau pendant 1 heure.'},
+ {name:'Potion d\'escalade',price:75,effect:'Pendant 1 heure, vitesse d\'escalade égale à la vitesse de déplacement et avantage aux tests pour grimper.'},
+ {name:'Potion de croissance',price:150,effect:'Effet d\'Agrandissement pendant 1d4 heures, sans concentration.',term:'Agrandissement',tip:'La créature devient plus grande, voit sa taille augmenter d’une catégorie, gagne un avantage aux tests de Force et aux jets de sauvegarde de Force, et ses attaques avec des armes infligent des dégâts supplémentaires. Dans cette potion, l’effet dure 1d4 heures et ne demande pas de concentration.'},
+ {name:'Potion de résistance',price:150,effect:'Donne la résistance à un type de dégâts choisi pendant 1 heure.'},
+ {name:'Potion d\'amitié animale',price:150,effect:'Permet d\'utiliser l\'effet d\'Amitié avec les animaux pendant 1 heure.',term:'Amitié avec les animaux',tip:'La bête doit avoir une Intelligence de 3 ou moins. Elle doit réussir un jet de Sagesse ou être charmée pendant 24 heures. L’effet ne force pas la bête à obéir à des ordres.'},
+ {name:'Potion de souffle de feu',price:150,effect:'Pendant 1 heure, permet de cracher du feu : attaque à distance, 4d6 dégâts de feu en cas d’échec du JS approprié.'},
+ {name:'Potion d\'héroïsme',price:400,effect:'Pendant 1 h : 10 PV temporaires + effet de Bénédiction, sans concentration.',term:'Bénédiction',tip:'Jusqu’à trois créatures gagnent 1d4 à ajouter à leurs jets d’attaque et à leurs jets de sauvegarde pendant la durée du sort. Ici, l’effet de la potion ne demande pas de concentration et dure 1 heure.'},
+ {name:'Potion de forme gazeuse',price:600,effect:'Permet de prendre une forme gazeuse pendant 1 heure.',term:'Forme gazeuse',tip:'La créature se transforme en nuage de brume. Elle ne peut pas parler, manipuler des objets ou attaquer normalement, peut se déplacer dans les petits espaces et gagne une forte résistance aux dégâts physiques. Ici, l’effet dure 1 heure.'},
+ {name:'Potion de clairvoyance',price:600,effect:'Permet d\'utiliser l\'effet de Clairvoyance.',term:'Clairvoyance',tip:'Crée un capteur invisible dans une zone connue située à portée. Le capteur permet d’entendre ou de voir comme si l’on se trouvait à son emplacement.'},
+ {name:'Potion de lecture des pensées',price:600,effect:'Effet de Détection des pensées, DD 13.',term:'Détection des pensées',tip:'Permet de lire les pensées superficielles d’une créature consciente et, en approfondissant, de découvrir ses pensées les plus intimes si elle échoue à son jet de sauvegarde.'},
+ {name:'Potion d\'invisibilité',price:1000,effect:'Rend invisible pendant 1 heure. L\'effet prend fin si le personnage attaque ou lance un sort.'},
+ {name:'Potion d\'invulnérabilité',price:2500,effect:'Résistance à tous les dégâts pendant 1 minute.'},
+ {name:'Potion de vitesse',price:1500,effect:'Effet de Hâte pendant 1 minute, sans concentration.',term:'Hâte',tip:'La créature voit sa vitesse doublée, gagne +2 à sa CA, a l’avantage aux jets de sauvegarde de Dextérité et obtient une action supplémentaire à chaque tour, limitée à certaines actions. À la fin, elle ne peut plus bouger ni agir pendant son tour suivant. Ici, l’effet dure 1 minute et ne demande pas de concentration.'},
+ {name:'Potion de vitalité',price:2000,effect:'Supprime l\'épuisement et les maladies/poisons et améliore fortement la récupération.'}
+];
+window.alchemyPotions=alchemyPotions;
+function renderAlchemyShop(){
+ const select=document.getElementById('shopPlayer'), grid=document.getElementById('alchemyShopGrid'), po=document.getElementById('shopPlayerPO'), status=document.getElementById('shopStatus');
+ if(!select||!grid||!po||!status)return;
+ const i=Math.max(0,Math.min(playerInventories.length-1,Number(select.value)||0)), p=playerInventories[i];
+ po.textContent=(Number(p.po)||0).toLocaleString('fr-FR')+' PO';
+ status.innerHTML=`Acheteur sélectionné : <strong>${escapeHTML(p.name)}</strong> · Solde : <strong>${(Number(p.po)||0).toLocaleString('fr-FR')} PO</strong>`;
+ grid.innerHTML=alchemyPotions.map((x,j)=>{
+   let effect=escapeHTML(x.effect);
+   if(x.term) effect=effect.replace(escapeHTML(x.term),`<span class="effect-term" data-tooltip="${escapeHTML(x.tip)}">${escapeHTML(x.term)}</span>`);
+   return `<div class="shop-card"><h3><span class="potion-name-wrap"><img class="potion-icon" src="${getPotionIcon(x.name)}" alt="">${escapeHTML(x.name)}</span></h3><div class="shop-price">${x.price.toLocaleString('fr-FR')} PO</div><div class="shop-effect">${effect}</div><div class="shop-buy"><button class="link" onclick="buyAlchemyPotion(${j})">🛒 Acheter</button></div></div>`;
+ }).join('');
+}
+function openAlchemyTV(){openTVPage('boutique_alchimie_tv.html',"Boutique d'alchimie")}
+function buyAlchemyPotion(index){
+ const pIndex=Math.max(0,Math.min(playerInventories.length-1,Number(document.getElementById('shopPlayer')?.value)||0));
+ const qty=Math.max(1,Math.min(99,Math.floor(Number(document.getElementById('shopQty')?.value)||1)));
+ const potion=alchemyPotions[index], player=playerInventories[pIndex]; if(!potion||!player)return;
+ const total=potion.price*qty;
+ if((Number(player.po)||0)<total){alert(`${player.name} n’a pas assez de PO.\nPrix : ${total.toLocaleString('fr-FR')} PO\nSolde : ${(Number(player.po)||0).toLocaleString('fr-FR')} PO`);return;}
+ player.po-=total;
+ const existing=player.items.find(x=>x.name.toLowerCase()===potion.name.toLowerCase());
+ if(existing)existing.qty=(Number(existing.qty)||0)+qty; else player.items.push({name:potion.name,qty});
+ saveInventories(); renderInventories(); renderAlchemyShop();
+}
+renderAlchemyShop();
+// ===== Boutique Au Bon Cap =====
+const bonCapItems=[
+ {name:'Kit d’escalade',price:25,displayPrice:'25 po',effect:'Permet de sécuriser une escalade avec cordes, sangles et pitons.'},
+ {name:'Corde en soie (15 m)',price:10,displayPrice:'10 po',effect:'Supporte jusqu’à 272 kg. Utile pour grimper, descendre ou sécuriser un passage.'},
+ {name:'Grappin',price:2,displayPrice:'2 po',effect:'Se fixe au bout d’une corde pour s’accrocher à une corniche, un arbre, un bâtiment, etc.'},
+ {name:'Matériel de pêche',price:1,displayPrice:'1 po',effect:'Permet de pêcher.'},
+ {name:'Outils de navigateur',price:25,displayPrice:'25 po',effect:'Permettent de déterminer sa position et de naviguer correctement.'},
+ {name:'Longue-vue',price:1000,displayPrice:'1 000 po',effect:'Permet d’observer des objets ou des personnes à grande distance.'},
+ {name:'Kit de soins',price:5,displayPrice:'5 po',effect:'Permet de stabiliser une créature à 0 PV sans test de Médecine. 10 utilisations.'},
+ {name:'Menottes',price:2,displayPrice:'2 po',effect:'Permettent de maintenir une créature prisonnière.'},
+ {name:'Pied-de-biche',price:2,displayPrice:'2 po',effect:'Donne un avantage aux tests de Force lorsqu’il peut être utilisé comme levier.'},
+ {name:'Bloc et palan',price:1,displayPrice:'1 po',effect:'Permet de soulever jusqu’à 4 fois le poids normalement transportable.'},
+ {name:'Pitons ×10',price:1,displayPrice:'1 po',effect:'Permettent de fixer une corde à une surface.'},
+ {name:'Miroir en acier',price:5,displayPrice:'5 po',effect:'Permet de regarder derrière soi ou autour d’un angle sans s’exposer.'},
+ {name:'Lanterne à capuchon',price:5,displayPrice:'5 po',effect:'Éclaire sur 18 m, avec 18 m supplémentaires en lumière faible. Peut être masquée.'},
+ {name:'Lanterne à faisceau',price:10,displayPrice:'10 po',effect:'Produit un faisceau de lumière sur 18 m, avec 18 m supplémentaires en lumière faible.'},
+ {name:'Perche (3 m)',price:0.05,displayPrice:'5 pc',effect:'Permet de tester ou manipuler des objets à distance.'},
+ {name:'Outre',price:0.2,displayPrice:'2 pa',effect:'Contient environ 0,5 L d’eau.'},
+ {name:'Tente pour deux personnes',price:2,displayPrice:'2 po',effect:'Permet de dormir à l’abri des intempéries.'},
+ {name:'Sac à dos',price:2,displayPrice:'2 po',effect:'Permet de transporter du matériel.'},
+ {name:'Sacoche',price:0.5,displayPrice:'5 pa',effect:'Petit sac permettant de transporter des objets.'},
+ {name:'Carte maritime',price:50,displayPrice:'50 po',effect:'Carte maritime détaillée permettant de mieux se repérer et de préparer ses voyages.'}
+];
+function renderBonCapShop(){
+ const select=document.getElementById('bonCapPlayer'),grid=document.getElementById('bonCapShopGrid'),po=document.getElementById('bonCapPlayerPO'),status=document.getElementById('bonCapStatus');
+ if(!select||!grid||!po||!status)return;
+ const i=Math.max(0,Math.min(playerInventories.length-1,Number(select.value)||0)),p=playerInventories[i];
+ po.textContent=(Number(p.po)||0).toLocaleString('fr-FR',{maximumFractionDigits:2})+' PO';
+ status.innerHTML=`Acheteur sélectionné : <strong>${escapeHTML(p.name)}</strong> · Solde : <strong>${(Number(p.po)||0).toLocaleString('fr-FR',{maximumFractionDigits:2})} PO</strong>`;
+ grid.innerHTML=bonCapItems.map((x,j)=>`<div class="shop-card"><h3><span class="potion-name-wrap"><img class="potion-icon" src="${getEquipmentIcon(x.name)}" alt="">${escapeHTML(x.name)}</span></h3><div class="shop-price">${escapeHTML(x.displayPrice)}</div><div class="shop-effect">${escapeHTML(x.effect)}</div><div class="shop-buy"><button class="link" onclick="buyBonCapItem(${j})">🛒 Acheter</button></div></div>`).join('');
+}
+function openBonCapTV(){openTVPage('boutique_bon_cap_tv.html','Au Bon Cap')}
+function buyBonCapItem(index){
+ const pIndex=Math.max(0,Math.min(playerInventories.length-1,Number(document.getElementById('bonCapPlayer')?.value)||0));
+ const qty=Math.max(1,Math.min(99,Math.floor(Number(document.getElementById('bonCapQty')?.value)||1)));
+ const item=bonCapItems[index],player=playerInventories[pIndex];if(!item||!player)return;
+ const total=item.price*qty;
+ if((Number(player.po)||0)+1e-9<total){alert(`${player.name} n’a pas assez de PO.\nPrix : ${item.displayPrice}${qty>1?' × '+qty:''}\nSolde : ${(Number(player.po)||0).toLocaleString('fr-FR',{maximumFractionDigits:2})} PO`);return;}
+ player.po=Math.round(((Number(player.po)||0)-total)*100)/100;
+ const existing=player.items.find(x=>x.name.toLowerCase()===item.name.toLowerCase());
+ if(existing)existing.qty=(Number(existing.qty)||0)+qty;else player.items.push({name:item.name,qty});
+ saveInventories();renderInventories();renderBonCapShop();
+}
+window.bonCapItems=bonCapItems;
+renderBonCapShop();
+
+const portServices=[
+ {name:'Accostage simple',price:1,displayPrice:'1 po',effect:'Accostage simple du navire.'},
+ {name:'Accostage + amarrage sécurisé',price:2,displayPrice:'2 po',effect:'Accostage avec amarrage sécurisé.'},
+ {name:'Accostage pour la nuit',price:2,displayPrice:'2 po',effect:'Accostage du navire pour une nuit.'},
+ {name:'Accostage + surveillance du navire',price:5,displayPrice:'5 po / nuit',effect:'Le navire est surveillé pendant une nuit.'},
+ {name:'Stationnement du navire plusieurs jours',price:2,displayPrice:'2 po / jour',effect:'Stationnement du navire au port.'},
+ {name:'Réparation légère du navire',price:10,displayPrice:'10 po',effect:'Petite réparation du navire.'},
+ {name:'Réparation moyenne',price:25,displayPrice:'25 po',effect:'Réparation intermédiaire du navire.'},
+ {name:'Réparation importante',price:50,displayPrice:'50 po+',effect:'Réparation importante. Pour ce service, le MJ peut définir un montant supérieur à 50 po au moment de l’achat.',variable:true},
+ {name:'Chargement / déchargement de marchandises',price:1,displayPrice:'1 po',effect:'Service de chargement ou de déchargement.'},
+ {name:'Eau douce pour le navire',price:0.5,displayPrice:'5 pa',effect:'Approvisionnement en eau douce.'}
+];
+function renderPortShop(){
+ const select=document.getElementById('portPlayer'),grid=document.getElementById('portShopGrid'),po=document.getElementById('portPlayerPO'),status=document.getElementById('portStatus');
+ if(!select||!grid||!po||!status)return;
+ const i=Math.max(0,Math.min(playerInventories.length-1,Number(select.value)||0)),p=playerInventories[i];
+ po.textContent=(Number(p.po)||0).toLocaleString('fr-FR',{maximumFractionDigits:2})+' PO';
+ status.innerHTML=`Client sélectionné : <strong>${escapeHTML(p.name)}</strong> · Solde : <strong>${(Number(p.po)||0).toLocaleString('fr-FR',{maximumFractionDigits:2})} PO</strong>`;
+ grid.innerHTML=portServices.map((x,j)=>`<div class="shop-card"><h3>${x.name}</h3><div class="shop-price">${x.displayPrice}</div><div class="shop-effect">${x.effect}</div><div class="shop-buy"><button class="link" onclick="buyPortService(${j})">🪙 Payer</button></div></div>`).join('');
+}
+function buyPortService(index){
+ const pIndex=Math.max(0,Math.min(playerInventories.length-1,Number(document.getElementById('portPlayer')?.value)||0));
+ const qty=Math.max(1,Math.min(99,Math.floor(Number(document.getElementById('portQty')?.value)||1)));
+ const service=portServices[index],player=playerInventories[pIndex]; if(!service||!player)return;
+ let unitPrice=service.price;
+ if(service.variable){
+   const entered=prompt('Montant de la réparation importante (minimum 50 PO) :','50');
+   if(entered===null)return;
+   unitPrice=Math.round((Number(String(entered).replace(',','.'))||0)*100)/100;
+   if(unitPrice<50){alert('Le montant doit être d’au moins 50 PO.');return;}
+ }
+ const total=Math.round(unitPrice*qty*100)/100;
+ if((Number(player.po)||0)+1e-9<total){alert(`${player.name} n’a pas assez de PO.\nPrix : ${total.toLocaleString('fr-FR')} PO\nSolde : ${(Number(player.po)||0).toLocaleString('fr-FR')} PO`);return;}
+ player.po=Math.round(((Number(player.po)||0)-total)*100)/100;
+ saveInventories();renderInventories();renderPortShop();
+ alert(`${service.name} payé : ${total.toLocaleString('fr-FR')} PO\nClient : ${player.name}`);
+}
+window.portServices=portServices;
+renderPortShop();
+
+function openPortTV(){openTVPage('boutique_port_tv.html','Port')}
+
+
+const combatPlayersKey='theLastHeartCombatPlayers';
+const combatPlayerNames=['Fïnn','Akio','Sylas','Syvens'];
+let combatPlayers=JSON.parse(localStorage.getItem(combatPlayersKey)||'null');
+if(!Array.isArray(combatPlayers)||combatPlayers.length!==combatPlayerNames.length){
+ combatPlayers=combatPlayerNames.map(name=>({name,current:'',max:'',ca:'',temp:0}));
+}else{
+ combatPlayers=combatPlayers.map((p,i)=>({name:combatPlayerNames[i],current:p?.current??'',max:p?.max??'',ca:p?.ca??'',temp:Math.max(0,Math.floor(Number(p?.temp)||0))}));
+}
+function saveCombatPlayers(){localStorage.setItem(combatPlayersKey,JSON.stringify(combatPlayers))}
+function setCombatPlayerStat(i,field,value){
+ const p=combatPlayers[i];if(!p)return;
+ if(field==='ca')p.ca=value===''?'':Math.max(0,Math.floor(Number(value)||0));
+ else if(field==='temp')p.temp=Math.max(0,Math.floor(Number(value)||0));
+ else if(field==='max'){
+   p.max=value===''?'':Math.max(0,Math.floor(Number(value)||0));
+   if(p.max!==''&&p.current!==''&&Number(p.current)>Number(p.max))p.current=p.max;
+ }else{
+   const before=p.current===''?null:Math.max(0,Math.floor(Number(p.current)||0));
+   p.current=value===''?'':Math.max(0,Math.floor(Number(value)||0));
+   if(p.max!==''&&Number(p.current)>Number(p.max))p.current=p.max;
+   const after=p.current===''?null:Math.max(0,Math.floor(Number(p.current)||0));
+   if(before!==null&&after!==null&&after>before)registerCombatEvent(currentOpenFicheId,'heal',after-before);
+ }
+ saveCombatPlayers();refreshOpenFichePV(currentOpenFicheId);
+}
+const combatTargetKey='theLastHeartCombatTargets';
+let combatTargets=JSON.parse(localStorage.getItem(combatTargetKey)||'null')||{};
+let combatAttackState=JSON.parse(localStorage.getItem('theLastHeartCombatAttackState')||'null')||{};
+let combatDamageState=JSON.parse(localStorage.getItem('theLastHeartCombatDamageState')||'null')||{};
+let combatSaveState=JSON.parse(localStorage.getItem('theLastHeartCombatSaveState')||'null')||{};
+const combatDpsKey='theLastHeartCombatDPS';
+let combatDpsState=JSON.parse(localStorage.getItem(combatDpsKey)||'null')||{};
+function saveCombatDps(){localStorage.setItem(combatDpsKey,JSON.stringify(combatDpsState))}
+function ensureCombatDps(id){
+ if(!combatDpsState[id]||typeof combatDpsState[id]!=='object')combatDpsState[id]={startedAt:null,total:0,players:[0,0,0,0],heals:[0,0,0,0]};
+ const s=combatDpsState[id];
+ if(!Array.isArray(s.players)||s.players.length!==combatPlayerNames.length)s.players=[0,0,0,0];
+ if(!Array.isArray(s.heals)||s.heals.length!==combatPlayerNames.length)s.heals=[0,0,0,0];
+ return s;
+}
+function getActivePlayerIndex(id){
+ const state=ensureInitiative(id);
+ const key=state?.current;
+ if(!key||!key.startsWith('player_'))return null;
+ const index=Number(key.slice(7));
+ return Number.isInteger(index)&&index>=0&&index<combatPlayerNames.length?index:null;
+}
+function registerCombatEvent(id,type,amount){
+ const value=Math.max(0,Math.floor(Number(amount)||0));
+ const playerIndex=getActivePlayerIndex(id);
+ if(value<=0||playerIndex===null)return null;
+ const s=ensureCombatDps(id);
+ if(!s.startedAt)s.startedAt=Date.now();
+ if(type==='damage'){
+   s.players[playerIndex]=(Number(s.players[playerIndex])||0)+value;
+   s.total=(Number(s.total)||0)+value;
+ }else if(type==='heal'){
+   s.heals[playerIndex]=(Number(s.heals[playerIndex])||0)+value;
+   s.healTotal=(Number(s.healTotal)||0)+value;
+ }
+ saveCombatDps();
+ return playerIndex;
+}
+function resetCombatDps(id){
+ if(!confirm('Réinitialiser le DPS meter de ce combat ?'))return;
+ combatDpsState[id]={startedAt:null,total:0,healTotal:0,players:[0,0,0,0],heals:[0,0,0,0]};
+ saveCombatDps();refreshOpenFichePV(id);
+}
+function formatDpsTime(seconds){
+ seconds=Math.max(0,Math.floor(seconds||0));
+ const m=Math.floor(seconds/60),s=seconds%60;
+ return (m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+}
+function renderDpsMeter(id){
+ const s=ensureCombatDps(id);
+ const elapsed=s.startedAt?Math.max(1,(Date.now()-Number(s.startedAt))/1000):0;
+ const maxDamage=Math.max(1,...s.players.map(x=>Number(x)||0));
+ const maxHeal=Math.max(1,...s.heals.map(x=>Number(x)||0));
+ const activeIndex=getActivePlayerIndex(id);
+ const activeName=activeIndex===null?'Aucun joueur':combatPlayerNames[activeIndex];
+ const damageRows=combatPlayerNames.map((name,i)=>({name,i,value:Number(s.players[i])||0})).sort((a,b)=>b.value-a.value).map(({name,i,value:dmg})=>{
+   const dps=elapsed?dmg/elapsed:0,pct=Math.max(0,Math.min(100,dmg/maxDamage*100));
+   return '<div class="dps-meter-row"><div class="dps-meter-name">'+escapeHTML(name)+'</div><div class="dps-meter-bar"><div class="dps-meter-fill" style="width:'+pct+'%"></div></div><div class="dps-meter-dmg">'+dmg+'</div><div class="dps-meter-value">'+dps.toFixed(1)+' DPS</div></div>';
+ }).join('');
+ const healRows=combatPlayerNames.map((name,i)=>({name,i,value:Number(s.heals[i])||0})).sort((a,b)=>b.value-a.value).map(({name,i,value:heal})=>{
+   const hps=elapsed?heal/elapsed:0,pct=Math.max(0,Math.min(100,heal/maxHeal*100));
+   return '<div class="dps-meter-row"><div class="dps-meter-name">'+escapeHTML(name)+'</div><div class="dps-meter-bar"><div class="hps-meter-fill" style="width:'+pct+'%"></div></div><div class="dps-meter-dmg">'+heal+'</div><div class="dps-meter-value">'+hps.toFixed(1)+' HPS</div></div>';
+ }).join('');
+ const totalDps=elapsed?(Number(s.total)||0)/elapsed:0,totalHps=elapsed?(Number(s.healTotal)||0)/elapsed:0;
+ return '<div class="meters-wrap"><div class="meters-active">🎯 Tour actuel : <b>'+escapeHTML(activeName)+'</b> — dégâts et soins attribués automatiquement</div><div class="meters-grid"><div class="dps-meter"><div class="dps-meter-head"><strong>⚔️ DPS Meter</strong><span class="dps-meter-time">⏱️ '+formatDpsTime(elapsed)+'</span></div>'+damageRows+'<div class="dps-meter-total">Total : <b>'+Number(s.total||0)+'</b> dégâts · <b>'+totalDps.toFixed(1)+'</b> DPS</div></div><div class="dps-meter hps-meter"><div class="dps-meter-head"><strong>💚 HPS Meter</strong><span class="dps-meter-time">⏱️ '+formatDpsTime(elapsed)+'</span></div>'+healRows+'<div class="dps-meter-total">Total : <b>'+Number(s.healTotal||0)+'</b> soins · <b>'+totalHps.toFixed(1)+'</b> HPS</div></div></div><div class="dps-meter-controls"><button class="dps-meter-reset" onclick="resetCombatDps(\''+id+'\')">🔄 Reset des meters</button></div></div>';
+}
+function saveCombatDamageState(){localStorage.setItem('theLastHeartCombatDamageState',JSON.stringify(combatDamageState))}
+function saveCombatSaveState(){localStorage.setItem('theLastHeartCombatSaveState',JSON.stringify(combatSaveState))}
+function setCombatSaveResult(result,button){
+ const id=currentOpenFicheId,targetIndex=getCombatTarget(id),out=button?.parentElement?.querySelector('.combat-save-result');
+ if(targetIndex===null){if(out)out.innerHTML='<b>⚠️ Sélectionne d’abord un joueur cible.</b>';return;}
+ combatSaveState[id]={targetIndex,result};saveCombatSaveState();
+ if(out){out.className='combat-save-result '+(result==='fail'?'save-fail':'save-success');out.innerHTML=result==='fail'?'<b>🔴 ÉCHEC — dégâts complets</b>':'<b>🟢 RÉUSSITE — demi-dégâts</b>'}
+}
+function saveCombatTargets(){localStorage.setItem(combatTargetKey,JSON.stringify(combatTargets))}
+function saveCombatAttackState(){localStorage.setItem('theLastHeartCombatAttackState',JSON.stringify(combatAttackState))}
+function setCombatTarget(id,index){
+ const p=combatPlayers[index];if(!p)return;
+ combatTargets[id]=index;saveCombatTargets();combatAttackState[id]={targetIndex:index,hit:false};saveCombatAttackState();refreshOpenFichePV(id);
+}
+function getCombatTarget(id){
+ const index=Number(combatTargets[id]);
+ return Number.isInteger(index)&&combatPlayers[index]?index:null;
+}
+function applyCombatPlayerDamage(index,damage){
+ const p=combatPlayers[index];if(!p)return {tempLost:0,hpLost:0};
+ let remaining=Math.max(0,Math.floor(Number(damage)||0));
+ const tempBefore=Math.max(0,Math.floor(Number(p.temp)||0));
+ const tempLost=Math.min(tempBefore,remaining);
+ p.temp=tempBefore-tempLost;remaining-=tempLost;
+ const hpBefore=Math.max(0,Number(p.current)||0);
+ const hpLost=Math.min(hpBefore,remaining);
+ p.current=p.current===''?'':hpBefore-hpLost;
+ saveCombatPlayers();refreshOpenFichePV(currentOpenFicheId);
+ return {tempLost,hpLost};
+}
+function renderCombatTargetBanner(id){
+ const index=getCombatTarget(id);
+ if(index===null)return '<div class="combat-target-banner">🎯 <strong>Aucune cible sélectionnée.</strong> Clique sur la fiche d’un joueur avant de lancer une attaque.</div>';
+ const p=combatPlayers[index],ca=p.ca===''?'CA ?':Number(p.ca);
+ return '<div class="combat-target-banner">🎯 Cible actuelle : <strong>'+escapeHTML(p.name)+'</strong> · 🛡️ <strong>'+escapeHTML(ca)+'</strong> CA · ❤️ '+(p.current===''?'—':p.current)+' PV · 🛡️ '+(Number(p.temp)||0)+' PV temporaires</div>';
+}
+
+const initiativePlayers=['Fïnn','Akio','Sylas','Syvens'];
+const initiativeStorageKey='theLastHeartInitiative';
+let initiativeState=JSON.parse(localStorage.getItem(initiativeStorageKey)||'null')||{};
+function saveInitiative(){localStorage.setItem(initiativeStorageKey,JSON.stringify(initiativeState))}
+function initiativePresetId(id){return id}
+function ensureInitiative(id){
+ const presetId=initiativePresetId(id), defs=combatPresets[presetId]; if(!defs)return null;
+ let state=initiativeState[presetId];
+ if(!state||typeof state!=='object')state={round:1,current:null,participants:[]};
+ const old=new Map((Array.isArray(state.participants)?state.participants:[]).map(p=>[p.key,p]));
+ const base=[
+   ...initiativePlayers.map((name,i)=>({key:'player_'+i,name,type:'joueur'})),
+   ...defs.enemies.map((e,i)=>({key:'enemy_'+i,name:e[0],type:'ennemi',enemyIndex:i}))
+ ];
+ state.participants=base.map(p=>({...p,initiative:old.has(p.key)?old.get(p.key).initiative:'',effects:old.has(p.key)&&Array.isArray(old.get(p.key).effects)?old.get(p.key).effects:[]}));
+ if(!state.round||state.round<1)state.round=1;
+ if(state.current&&!state.participants.some(p=>p.key===state.current))state.current=null;
+ initiativeState[presetId]=state;saveInitiative();return state;
+}
+function getInitiativeSorted(id){
+ const state=ensureInitiative(id);if(!state)return[];
+ return [...state.participants].sort((a,b)=>{
+   const av=a.initiative===''||a.initiative==null?-Infinity:Number(a.initiative);
+   const bv=b.initiative===''||b.initiative==null?-Infinity:Number(b.initiative);
+   return bv-av;
+ });
+}
+function isInitiativeDead(id,p){
+ if(p.type!=='ennemi')return false;
+ const e=combatState.enemies.find(x=>x.ficheId===id&&x.ficheIndex===p.enemyIndex);
+ return !!e&&Number(e.current)<=0;
+}
+function setInitiative(id,key,value){
+ const state=ensureInitiative(id),p=state&&state.participants.find(x=>x.key===key);if(!p)return;
+ p.initiative=value===''?'':Math.floor(Number(value)||0);
+ saveInitiative();refreshOpenFichePV(id);
+}
+function rollCreatureInitiative(id,key){
+ const state=ensureInitiative(id),p=state&&state.participants.find(x=>x.key===key);
+ if(!p||p.type!=='ennemi')return;
+ p.initiative=Math.floor(Math.random()*20)+1;
+ saveInitiative();
+ refreshOpenFichePV(id);
+}
+function decrementInitiativeEffects(id,key){
+ const state=ensureInitiative(id),p=state&&state.participants.find(x=>x.key===key);if(!p||!Array.isArray(p.effects))return;
+ p.effects=p.effects.map(e=>{if(e.level)return e;const t=Number(e.turns)||0;return t>0?{...e,turns:t-1}:e}).filter(e=>e.level||e.turns!==0||e.permanent);
+ saveInitiative();
+}
+function nextInitiative(id,direction=1){
+ const state=ensureInitiative(id);if(!state)return;
+ const active=getInitiativeSorted(id).filter(p=>p.initiative!==''&&!isInitiativeDead(id,p));
+ if(!active.length){alert('Renseigne au moins une initiative avant de commencer le tour.');return}
+ if(direction>0&&state.current){
+   const current=state.participants.find(p=>p.key===state.current);
+   if(current&&!isInitiativeDead(id,current))decrementInitiativeEffects(id,current.key);
+ }
+ let idx=active.findIndex(p=>p.key===state.current);
+ if(idx<0)idx=direction>0?-1:0;
+ let next=idx+direction;
+ if(next>=active.length){next=0;state.round++}
+ if(next<0){next=active.length-1;if(state.round>1)state.round--}
+ state.current=active[next].key;saveInitiative();refreshOpenFichePV(id);
+}
+function resetInitiative(id){
+ const state=ensureInitiative(id);if(!state)return;
+ state.round=1;state.current=null;state.participants.forEach(p=>p.initiative='');saveInitiative();refreshOpenFichePV(id);
+}
+function renderCombatPV(){
+ const name=document.getElementById('combatName'), box=document.getElementById('combatEnemies');
+ if(!name||!box)return; name.value=combatState.name||''; box.innerHTML='';
+ combatState.enemies.forEach((e,i)=>{
+   const max=Math.max(0,Number(e.max)||0),cur=Math.max(0,Math.min(max,Number(e.current)||0)); e.max=max;e.current=cur;
+   const pct=max?Math.max(0,Math.min(100,cur/max*100)):0;
+   const dead=cur<=0;
+   const wrap=document.createElement('div');wrap.className='combat-enemy'+(dead?' combat-dead':'');
+   wrap.innerHTML=`<div class="combat-enemy-head"><div class="combat-enemy-name">${escapeHTML(e.name||'Ennemi '+(i+1))}</div><button class="link danger" onclick="removeCombatEnemy(${i})">🗑️ Retirer</button></div>
+   <div class="pv-line"><div class="pv-current">${cur} / ${max} PV</div><div class="pv-bar"><div class="pv-fill" style="width:${pct}%;background:${pct<=25?'#9b3d3d':pct<=50?'#b1843c':'#6e9f4b'}"></div></div></div>
+   <div class="damage-box"><label>Dégâts subis :</label><input id="damage_${i}" type="number" min="0" step="1" placeholder="ex. 17" onkeydown="if(event.key==='Enter')applyDamage(${i})"><button class="link" onclick="applyDamage(${i})">💥 Appliquer</button><button class="link" onclick="healEnemy(${i})">💚 Soin</button><button class="link" onclick="resetEnemyPV(${i})">🔄 PV max</button></div>`;
+   box.appendChild(wrap);
+ });
+ if(!combatState.enemies.length)box.innerHTML='<div class="card"><p>Aucun ennemi. Clique sur <b>➕ Ajouter un ennemi</b> ou ouvre un combat de l’acte.</p></div>';
+ saveCombatPV();
+}
+function escapeHTML(v){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function applyDamage(i){const input=document.getElementById('damage_'+i);const d=Number(input&&input.value);if(!Number.isFinite(d)||d<0){alert('Entre un nombre de dégâts valide.');return}combatState.enemies[i].current=Math.max(0,combatState.enemies[i].current-d);renderCombatPV()}
+function healEnemy(i){const h=Number(prompt('Combien de PV rendre ?','10'));if(!Number.isFinite(h)||h<0)return;combatState.enemies[i].current=Math.min(combatState.enemies[i].max,combatState.enemies[i].current+h);renderCombatPV()}
+function resetEnemyPV(i){combatState.enemies[i].current=combatState.enemies[i].max;renderCombatPV()}
+function removeCombatEnemy(i){combatState.enemies.splice(i,1);renderCombatPV()}
+function initCombatPV(){const n=document.getElementById('combatName');if(!n)return;n.addEventListener('input',()=>{combatState.name=n.value;saveCombatPV()});renderCombatPV()}
+initCombatPV();
+
+</script>
+<script>
+(function(){
+  const combatPlaylistTracks = [
+    ["Stormdeck Overture.mp3","Stormdeck Overture"],
+    ["Stormdeck Overture_1.mp3","Stormdeck Overture — 2"],
+    ["Stormflag Run.mp3","Stormflag Run"],
+    ["Stormflag_Run_discord_128k.mp3","Stormflag Run — Discord 128k"],
+    ["Storms At Sea.mp3","Storms At Sea"],
+    ["Storms At Sea_1.mp3","Storms At Sea — 2"]
+  ];
+  let combatMusicIndex = 0;
+
+  function initCombatMusic(){
+    const audio=document.getElementById("combatMusicAudio");
+    const list=document.getElementById("combatMusicList");
+    const now=document.getElementById("combatMusicNow");
+    const prev=document.getElementById("combatMusicPrev");
+    const next=document.getElementById("combatMusicNext");
+    if(!audio || !list || !now || !prev || !next) return;
+
+    list.innerHTML="";
+    combatPlaylistTracks.forEach((track,i)=>{
+      const li=document.createElement("li");
+      li.textContent=track[1];
+      li.style.cursor="pointer";
+      li.onclick=()=>loadCombatMusic(i,true);
+      list.appendChild(li);
+    });
+
+    function updateList(){
+      [...list.children].forEach((li,i)=>{
+        li.style.fontWeight=(i===combatMusicIndex)?"700":"400";
+      });
+    }
+
+    function loadCombatMusic(i,autoplay){
+      combatMusicIndex=(i+combatPlaylistTracks.length)%combatPlaylistTracks.length;
+      const track=combatPlaylistTracks[combatMusicIndex];
+      audio.loop=false;
+      audio.src="sons/combat/"+track[0];
+      audio.load();
+      now.textContent="🎵 En cours : "+track[1];
+      updateList();
+      if(autoplay){
+        const p=audio.play();
+        if(p) p.catch(()=>{});
+      }
+    }
+
+    audio.onended=()=>loadCombatMusic(combatMusicIndex+1,true);
+    prev.onclick=()=>loadCombatMusic(combatMusicIndex-1,true);
+    next.onclick=()=>loadCombatMusic(combatMusicIndex+1,true);
+
+    loadCombatMusic(0,false);
+  }
+
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initCombatMusic,{once:true});
+  else initCombatMusic();
+})();
+</script>
+
+<script>
+(function(){
+  const bossPlaylistTracks = [
+    ["Gate of Ash.mp3","Gate of Ash"],
+    ["Gate of Ash_1.mp3","Gate of Ash — 2"],
+    ["Obsidian Throne.mp3","Obsidian Throne"],
+    ["Obsidian Throne_1.mp3","Obsidian Throne — 2"],
+    ["Throne of Ash.mp3","Throne of Ash"],
+    ["Throne of Ash_1.mp3","Throne of Ash — 2"]
+  ];
+  let bossMusicIndex = 0;
+
+  function initBossMusic(){
+    const audio=document.getElementById("bossMusicAudio");
+    const list=document.getElementById("bossMusicList");
+    const now=document.getElementById("bossMusicNow");
+    const prev=document.getElementById("bossMusicPrev");
+    const next=document.getElementById("bossMusicNext");
+    if(!audio || !list || !now || !prev || !next) return;
+
+    list.innerHTML="";
+    bossPlaylistTracks.forEach((track,i)=>{
+      const li=document.createElement("li");
+      li.textContent=track[1];
+      li.style.cursor="pointer";
+      li.onclick=()=>loadBossMusic(i,true);
+      list.appendChild(li);
+    });
+
+    function updateList(){
+      [...list.children].forEach((li,i)=>{
+        li.style.fontWeight=(i===bossMusicIndex)?"700":"400";
+      });
+    }
+
+    function loadBossMusic(i,autoplay){
+      bossMusicIndex=(i+bossPlaylistTracks.length)%bossPlaylistTracks.length;
+      const track=bossPlaylistTracks[bossMusicIndex];
+      audio.loop=false;
+      audio.src="sons/boss/"+track[0];
+      audio.load();
+      now.textContent="🎵 En cours : "+track[1];
+      updateList();
+      if(autoplay){
+        const p=audio.play();
+        if(p) p.catch(()=>{});
+      }
+    }
+
+    audio.onended=()=>loadBossMusic(bossMusicIndex+1,true);
+    prev.onclick=()=>loadBossMusic(bossMusicIndex-1,true);
+    next.onclick=()=>loadBossMusic(bossMusicIndex+1,true);
+
+    loadBossMusic(0,false);
+  }
+
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initBossMusic,{once:true});
+  else initBossMusic();
+})();
+</script>
+
+<script>
+(function(){
+  const mainMusicIds=['combatMusicAudio','bossMusicAudio'];
+  function stopOtherMainMusic(except){
+    mainMusicIds.forEach(id=>{
+      const audio=document.getElementById(id);
+      if(audio && audio!==except && !audio.paused){
+        audio.pause();
+        audio.currentTime=0;
+      }
+    });
+  }
+  function bindMainMusicExclusivity(){
+    mainMusicIds.forEach(id=>{
+      const audio=document.getElementById(id);
+      if(!audio)return;
+      audio.addEventListener('play',()=>stopOtherMainMusic(audio));
+    });
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',bindMainMusicExclusivity,{once:true});
+  }else{
+    bindMainMusicExclusivity();
+  }
+})();
+</script>
+
+<div id="globalMusicRemote" aria-label="Télécommande musique">
+  <div class="global-remote-title"><span>🎵</span><span id="globalRemoteName" class="global-remote-name">Aucune musique</span><span id="globalRemoteType" class="global-remote-type"></span></div>
+  <div class="global-remote-controls">
+    <button type="button" id="globalRemotePrev" title="Précédent">⏮️</button>
+    <button type="button" id="globalRemotePlay" title="Pause / lecture">▶️</button>
+    <button type="button" id="globalRemoteNext" title="Suivant">⏭️</button>
+    <button type="button" id="globalRemoteStop" title="Arrêter">⏹️</button>
+    <span>🔊</span><span class="global-remote-volume"><input id="globalRemoteVolume" type="range" min="0" max="1" step="0.01" value="1" aria-label="Volume"></span><span id="globalRemotePercent" class="global-remote-percent">100%</span>
+  </div>
+</div>
+
+<script>
+(function(){
+  const remote=document.getElementById('globalMusicRemote');
+  const name=document.getElementById('globalRemoteName');
+  const type=document.getElementById('globalRemoteType');
+  const play=document.getElementById('globalRemotePlay');
+  const prev=document.getElementById('globalRemotePrev');
+  const next=document.getElementById('globalRemoteNext');
+  const stop=document.getElementById('globalRemoteStop');
+  const volume=document.getElementById('globalRemoteVolume');
+  const percent=document.getElementById('globalRemotePercent');
+  const sources=[
+    {audio:'combatMusicAudio',now:'combatMusicNow',prev:'combatMusicPrev',next:'combatMusicNext',label:'Combat'},
+    {audio:'bossMusicAudio',now:'bossMusicNow',prev:'bossMusicPrev',next:'bossMusicNext',label:'Boss'}
+  ];
+  let active=null;
+  function info(a){return sources.find(x=>x.audio===a.id)||null}
+  function refresh(){
+    if(!active){remote.classList.remove('visible');return}
+    const s=info(active);if(!s)return;
+    const n=document.getElementById(s.now);
+    name.textContent=n&&n.textContent.trim()?n.textContent.trim():'Musique';
+    type.textContent=s.label;
+    play.textContent=active.paused?'▶️':'⏸️';
+    volume.value=String(active.volume);
+    percent.textContent=Math.round(active.volume*100)+'%';
+    remote.classList.add('visible');
+    remote.style.position='fixed';remote.style.top='14px';remote.style.right='14px';remote.style.bottom='auto';remote.style.left='auto';remote.style.zIndex='2147483647';
+  }
+  function setActive(a){active=a;refresh()}
+  function bind(){
+    sources.forEach(s=>{
+      const a=document.getElementById(s.audio);if(!a)return;
+      a.addEventListener('play',()=>setActive(a));
+      a.addEventListener('pause',refresh);
+      a.addEventListener('volumechange',refresh);
+      a.addEventListener('ended',refresh);
+    });
+  }
+  play.onclick=()=>{if(!active)return;const p=active.paused?active.play():active.pause();if(p&&p.catch)p.catch(()=>{});refresh()};
+  stop.onclick=()=>{if(!active)return;active.pause();active.currentTime=0;refresh()};
+  volume.oninput=()=>{if(!active)return;active.volume=Math.max(0,Math.min(1,Number(volume.value)||0));refresh()};
+  prev.onclick=()=>{const s=active&&info(active);const b=s&&document.getElementById(s.prev);if(b)b.click()};
+  next.onclick=()=>{const s=active&&info(active);const b=s&&document.getElementById(s.next);if(b)b.click()};
+  function init(){bind()}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
+
+
+</body></html>

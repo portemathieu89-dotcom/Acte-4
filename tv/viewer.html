@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>The Last Heart — Affichage TV</title>
+<style>
+html,body{margin:0;width:100%;height:100%;background:#000;overflow:hidden;font-family:Arial,sans-serif}
+#stage{width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#000}
+#frame{width:min(100vw,177.7778vh);height:min(56.25vw,100vh);aspect-ratio:16/9;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;background:#000}
+#image{width:100%;height:100%;object-fit:contain;object-position:center center;user-select:none;transition:transform .15s ease;display:block}
+#bar{position:fixed;top:15px;left:50%;transform:translateX(-50%);display:flex;gap:7px;z-index:5;opacity:.15;transition:opacity .2s;background:rgba(20,20,20,.8);padding:7px;border-radius:8px}
+#bar:hover{opacity:1}
+button{background:#333;color:#fff;border:0;border-radius:6px;padding:8px 12px;cursor:pointer}
+#title{position:fixed;bottom:15px;left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,.65);padding:8px 14px;border-radius:7px;opacity:0;transition:opacity .2s}
+body:hover #title{opacity:1}
+</style></head><body>
+<div id="stage"><div id="frame"><img id="image"><iframe id="pageFrame" title="Affichage TV" style="display:none;width:100%;height:100%;border:0;background:#000"></iframe></div></div>
+<div id="bookNav" style="display:none;position:fixed;top:50%;left:20px;right:20px;transform:translateY(-50%);z-index:6;justify-content:space-between;pointer-events:none"><button onclick="changeBook(-1)" style="pointer-events:auto;font-size:34px;padding:12px 20px">‹</button><button onclick="changeBook(1)" style="pointer-events:auto;font-size:34px;padding:12px 20px">›</button></div><div id="bar"><button onclick="fit()">Adapter</button><button onclick="zoomIn()">＋</button><button onclick="zoomOut()">−</button><button id="fullscreenBtn" onclick="full()">⛶ Plein écran</button><button onclick="window.close()">✕</button></div>
+<div id="title"></div>
+<script>
+const params=new URLSearchParams(location.search);const initialSrc=params.get('src')||'';const initialTitle=params.get('title')||'';const initialPage=params.get('page')||'';const initialPageTitle=params.get('pageTitle')||'';let isBook=params.get('book')==='1';const img=document.getElementById('image');const pageFrame=document.getElementById('pageFrame');const label=document.getElementById('title');let z=1;
+const bookPages=[
+['../images/outils-mj/livre/livre_01-02.png','Livre de Calvinhi — pages 1-2'],
+['../images/outils-mj/livre/livre_03-04.png','Livre de Calvinhi — pages 3-4'],
+['../images/outils-mj/livre/livre_05-06.png','Livre de Calvinhi — pages 5-6'],
+['../images/outils-mj/livre/livre_07-08.png','Livre de Calvinhi — pages 7-8'],
+['../images/outils-mj/livre/livre_09-10.png','Livre de Calvinhi — pages 9-10'],
+['../images/outils-mj/livre/livre_11-12.png','Livre de Calvinhi — pages 11-12']
+];
+let currentSrc=initialSrc;let bookIndex=isBook?Math.max(0,bookPages.findIndex(p=>p[0]===initialSrc)):-1;
+function setTVImage(data){
+  if(!data||!data.src)return;
+  currentSrc=data.src;isBook=!!data.isBook;
+  pageFrame.style.display='none';pageFrame.src='about:blank';
+  img.style.display='block';img.src=currentSrc;label.textContent=data.title||'';
+  bookIndex=isBook?Math.max(0,bookPages.findIndex(p=>p[0]===currentSrc)):-1;
+  document.getElementById('bookNav').style.display=isBook?'flex':'none';
+  fit();
+}
+function setTVPage(data){
+  if(!data||!data.page)return;
+  isBook=false;currentSrc='';bookIndex=-1;
+  img.style.display='none';document.getElementById('bookNav').style.display='none';
+  pageFrame.style.display='block';pageFrame.src=data.page;label.textContent=data.title||'';
+  fit();
+}
+if(initialPage)setTVPage({page:initialPage,title:initialPageTitle});else setTVImage({src:initialSrc,title:initialTitle,isBook});
+function changeBook(delta){if(!isBook)return;bookIndex=(bookIndex+delta+bookPages.length)%bookPages.length;setTVImage({src:bookPages[bookIndex][0],title:bookPages[bookIndex][1],isBook:true})}
+
+function apply(){img.style.transform=`scale(${z})`}
+function fit(){z=1;apply()} function zoomIn(){z=Math.min(5,z+.25);apply()} function zoomOut(){z=Math.max(.5,z-.25);apply()}
+async function full(){
+  try{
+    if(document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+  }catch(e){}
+}
+
+function receiveTVMessage(data){
+  if(!data)return;
+  if(data.type==='theLastHeartTV')setTVImage(data);
+  else if(data.type==='theLastHeartTVPage')setTVPage(data);
+  else if(data.type==='theLastHeartTVCommand'&&data.command==='fullscreen')full();
+  else if(data.type==='theLastHeartInventories'){
+    try{
+      if(pageFrame.style.display!=='none' && pageFrame.contentWindow){
+        pageFrame.contentWindow.postMessage(data,'*');
+      }
+    }catch(e){}
+  }
+}
+window.addEventListener('message',e=>receiveTVMessage(e.data));
+if('BroadcastChannel' in window){
+  const tvChannel=new BroadcastChannel('theLastHeartTV');
+  tvChannel.addEventListener('message',e=>receiveTVMessage(e.data));
+  const announceReady=()=>tvChannel.postMessage({type:'theLastHeartTVReady'});
+  announceReady();
+  setInterval(announceReady,2000);
+}
+
+document.addEventListener('fullscreenchange',()=>{
+  const b=document.getElementById('fullscreenBtn');
+  if(b)b.textContent=document.fullscreenElement?'↙ Quitter le plein écran':'⛶ Plein écran';
+});
+document.addEventListener('keydown',e=>{if(isBook&&(e.key==='ArrowLeft'||e.key==='ArrowRight')){e.preventDefault();changeBook(e.key==='ArrowLeft'?-1:1);return}if(e.key==='Escape'&&document.fullscreenElement)document.exitFullscreen();else if(e.key==='+')zoomIn();else if(e.key==='-')zoomOut();else if(e.key==='0')fit();else if(e.key==='f'||e.key==='F')full()});
+</script></body></html>
