@@ -223,7 +223,19 @@ h2{font-family:Georgia,serif;color:var(--gold2);font-size:32px;text-shadow:0 2px
 </div><div id="acteLieux" class="section"><h3>🗺️ Lieux</h3><div class="card"><p class="small">Section vide — les lieux de l'acte seront ajoutés ici.</p></div></div>
 <div id="acteScenes" class="section"><h3>🎬 Scènes</h3><div class="card"><p class="small">Section vide — les scènes de l'acte seront ajoutées ici.</p></div></div>
 <div id="acteSons" class="section"><h3>🔊 Sons</h3><div class="card"><p class="small">Section vide — les sons propres à l'acte seront ajoutés ici.</p></div></div>
-<div id="acteMusiques" class="section"><h3>🎵 Musiques</h3><div class="card"><p class="small">Section vide — les musiques propres à l'acte seront ajoutées ici.</p></div></div>
+<div id="acteMusiques" class="section"><h3>🎵 Musiques</h3>
+<div class="card">
+<h3 id="acteMusicTitle">🎵 Musiques de la Nécropole d'Aether</h3>
+<p style="opacity:.8;">Musiques propres à l'Acte 4. Clique sur un morceau pour le lancer, ou utilise les boutons pour naviguer dans la playlist.</p>
+<audio id="acteMusicAudio" controls preload="metadata" style="width:100%;margin:12px 0;"></audio>
+<div style="margin:8px 0;">
+<button class="link" type="button" id="acteMusicPrev">⏮️ Précédent</button>
+<button class="link" type="button" id="acteMusicNext">⏭️ Suivant</button>
+</div>
+<div id="acteMusicNow" style="font-weight:bold;margin:10px 0;"></div>
+<ol id="acteMusicList" style="line-height:1.8;margin-top:8px;"></ol>
+</div>
+</div>
 </section>
 <section id="livre" class="hidden">
 <h2>📕 Livre de Calvinhi</h2>
@@ -1320,6 +1332,56 @@ initCombatPV();
 </script>
 <script>
 (function(){
+  const acteMusicTracks = [
+    ["Catacomb Vigil.mp3","Catacomb Vigil"],
+    ["Catacomb Vigil_1.mp3","Catacomb Vigil — 2"],
+    ["Catacomb of Ash.mp3","Catacomb of Ash"],
+    ["Catacomb of Ash_1.mp3","Catacomb of Ash — 2"],
+    ["Cathedral of Ash.mp3","Cathedral of Ash"],
+    ["Sepulcher of Ash.mp3","Sepulcher of Ash"],
+    ["Sepulcher of Ash_1.mp3","Sepulcher of Ash — 2"]
+  ];
+  let acteMusicIndex=0;
+  function initActeMusic(){
+    const audio=document.getElementById("acteMusicAudio");
+    const list=document.getElementById("acteMusicList");
+    const now=document.getElementById("acteMusicNow");
+    const prev=document.getElementById("acteMusicPrev");
+    const next=document.getElementById("acteMusicNext");
+    if(!audio||!list||!now||!prev||!next)return;
+    list.innerHTML="";
+    acteMusicTracks.forEach((track,i)=>{
+      const li=document.createElement("li");
+      li.textContent=track[1];
+      li.style.cursor="pointer";
+      li.onclick=()=>loadActeMusic(i,true);
+      list.appendChild(li);
+    });
+    function updateList(){
+      [...list.children].forEach((li,i)=>{li.style.fontWeight=(i===acteMusicIndex)?"700":"400";});
+    }
+    function loadActeMusic(i,autoplay){
+      acteMusicIndex=(i+acteMusicTracks.length)%acteMusicTracks.length;
+      const track=acteMusicTracks[acteMusicIndex];
+      audio.loop=false;
+      audio.src="images/acte/musiques/"+encodeURIComponent(track[0]);
+      audio.load();
+      now.textContent="🎵 En cours : "+track[1];
+      updateList();
+      if(autoplay){const p=audio.play();if(p)p.catch(()=>{});}
+    }
+    audio.onended=()=>loadActeMusic(acteMusicIndex+1,true);
+    prev.onclick=()=>loadActeMusic(acteMusicIndex-1,true);
+    next.onclick=()=>loadActeMusic(acteMusicIndex+1,true);
+    loadActeMusic(0,false);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initActeMusic,{once:true});
+  else initActeMusic();
+})();
+</script>
+
+<script>
+(function(){
   const combatPlaylistTracks = [
     ["Stormdeck Overture.mp3","Stormdeck Overture"],
     ["Stormdeck Overture_1.mp3","Stormdeck Overture — 2"],
@@ -1442,7 +1504,7 @@ initCombatPV();
 
 <script>
 (function(){
-  const mainMusicIds=['combatMusicAudio','bossMusicAudio'];
+  const mainMusicIds=['acteMusicAudio','combatMusicAudio','bossMusicAudio'];
   function stopOtherMainMusic(except){
     mainMusicIds.forEach(id=>{
       const audio=document.getElementById(id);
@@ -1490,6 +1552,7 @@ initCombatPV();
   const volume=document.getElementById('globalRemoteVolume');
   const percent=document.getElementById('globalRemotePercent');
   const sources=[
+    {audio:'acteMusicAudio',now:'acteMusicNow',prev:'acteMusicPrev',next:'acteMusicNext',label:'Acte 4'},
     {audio:'combatMusicAudio',now:'combatMusicNow',prev:'combatMusicPrev',next:'combatMusicNext',label:'Combat'},
     {audio:'bossMusicAudio',now:'bossMusicNow',prev:'bossMusicPrev',next:'bossMusicNext',label:'Boss'}
   ];
