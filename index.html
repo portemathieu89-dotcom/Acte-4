@@ -175,8 +175,9 @@ h2{font-family:Georgia,serif;color:var(--gold2);font-size:32px;text-shadow:0 2px
 <div id="acteResume" class="card"><h3>📖 Résumé de l'acte</h3><p class="small">Aucun contenu d'acte n'est encore renseigné.</p></div>
 <div id="actePNJ" class="section"><h3>👥 PNJ</h3><div class="card"><p class="small">Section vide — les PNJ de l'acte seront ajoutés ici.</p></div></div>
 <div id="acteQuetes" class="section"><h3>📜 Quêtes</h3>
-<div class="card">
-<h3>🧩 Énigme</h3>
+<details class="card" style="padding:0;overflow:hidden">
+<summary style="cursor:pointer;padding:16px 18px;color:#e0bd79;font-weight:bold;list-style-position:inside">🧩 Énigme</summary>
+<div style="padding:0 18px 18px">
 <p>Une mystérieuse salle de la Nécropole d'Aether met les aventuriers face à plusieurs inscriptions et symboles. Les indices doivent être observés et interprétés pour trouver la bonne combinaison.</p>
 <div class="grid">
 <div class="card image-card">
@@ -208,7 +209,8 @@ h2{font-family:Georgia,serif;color:var(--gold2);font-size:32px;text-shadow:0 2px
 <div class="card" style="margin-top:15px">
 <h3>☠️ Danger</h3>
 <p><b>1d6 dégâts par minute</b> tant que les joueurs restent dans la salle.</p>
-</div><details class="card" style="margin-top:15px">
+</div>
+<details class="card" style="margin-top:15px">
 <summary style="cursor:pointer;color:#e0bd79;font-weight:bold">🔐 Solution — MJ uniquement</summary>
 <div style="margin-top:12px">
 <p>Les symboles correspondent aux éléments suivants :</p>
@@ -217,6 +219,7 @@ h2{font-family:Georgia,serif;color:var(--gold2);font-size:32px;text-shadow:0 2px
 </div>
 </details>
 </div>
+</details>
 </div>
 <div id="acteCombats" class="section"><h3>⚔️ Combats</h3>
 <div class="card image-card"><img class="thumb tall" src="images/acte/pnj/kaelen_shade.webp" alt="Kaelen Shade — combat" onclick="openFiche('kaelen_shade');openImage(this.src,'Kaelen Shade — combat')"><h3>⚓ Kaelen Shade</h3><p><b>Rôle :</b> Contre-Amiral de la Marine.</p><p><b>Pierre Divine :</b> Nekrion — <b>Pouvoir :</b> Invocation.</p><p>Commandant de trois âmes invoquées : le Gardien, le Médecin et le Prédateur.</p><button class="link" onclick="openFiche('kaelen_shade')">⚔️ Ouvrir la fiche de combat</button></div>
