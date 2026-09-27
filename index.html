@@ -493,7 +493,7 @@ const bookPages=[
 function setZoom(v){zoom=v;applyZoom()}
 function applyZoom(){document.getElementById('fiche').style.transform=`scale(${zoom})`;document.getElementById('fiche').style.transformOrigin='top center';document.getElementById('fiche').style.width=`${100/zoom}%`}
 function closeFiche(){document.getElementById('modal').classList.remove('open')}
-function openImage(src,title,isBook=false){currentImage=src;currentImageTitle=title||'';currentIsBook=isBook;currentBookIndex=isBook?bookPages.findIndex(p=>p.src===src):-1;const img=document.getElementById('bigImage');if(img){img.src=src;img.alt=currentImageTitle}const modal=document.getElementById('imageModal');if(modal)modal.classList.add('open');const prev=document.getElementById('bookPrev'),next=document.getElementById('bookNext');if(prev)prev.style.display=isBook?'block':'none';if(next)next.style.display=isBook?'block':'none'}
+function openImage(src,title,isBook=false){currentImage=src;currentImageTitle=title||'';currentIsBook=isBook;currentBookIndex=isBook?bookPages.findIndex(p=>p.src===src):-1;openTV(src,currentImageTitle,currentIsBook)}
 
 function showBookPage(index){if(!currentIsBook)return;currentBookIndex=(index+bookPages.length)%bookPages.length;const p=bookPages[currentBookIndex];currentImage=p.src;currentImageTitle=p.title;const img=document.getElementById('bigImage');if(img){img.src=p.src;img.alt=p.title}}
 function bookPrev(){showBookPage(currentBookIndex-1)}
