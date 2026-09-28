@@ -1851,12 +1851,12 @@ function openCombatKaelenShade(){
       C1:{type:'coffre',title:'🧰 Coffre C1',difficulty:'DD 13–14',loot:[['90 po',1],['Potion de soins',1],['Gemme — 25 po',1]]},
       C2:{type:'coffre',title:'🧰 Coffre C2',difficulty:'DD 15–16',loot:[['150 po',1],['Potion de soins',2],['Gemme — 50 po',1]]},
       C3:{type:'coffre',title:'🧰 Coffre majeur C3',difficulty:'Perception DD 17 · Arcanes DD 16 · Outils de voleur DD 18 · Constitution DD 15',loot:[['200 po',1],['Potion de soins supérieure',1],['Gemme — 100 po',1],['Objet magique mineur',1]],note:'Si le piège du coffre est déclenché : 3d8 foudre en cas d’échec de Constitution DD 15. Le sanctuaire contient également un indice concernant le niveau 2.'},
-      P1:{type:'piege',title:'⚠️ P1 — Dalles',difficulty:'DD 13',damage:'2d6',effect:'Dégâts perforants'},
-      P2:{type:'piege',title:'⚠️ P2 — Chaîne',difficulty:'DD 14',damage:'2d6',effect:'Dégâts contondants + À terre'},
-      P3:{type:'piege',title:'⚠️ P3 — Mur écrasant',difficulty:'DD 14–15',damage:'3d6',effect:'Dégâts contondants + repoussement'},
-      P4:{type:'piege',title:'⚠️ P4 — Rune de feu',difficulty:'DD 14–15',damage:'3d6',effect:'Dégâts de feu'},
-      P5:{type:'piege',title:'⚠️ P5 — Faux coffre',difficulty:'DD 14',damage:'2d6',effect:'Dégâts de poison + Empoisonné'},
-      P6:{type:'piege',title:'⚠️ P6 — Halo',difficulty:'DD 15–16',damage:'2d8',effect:'Dégâts de force + repoussement'},
+      P1:{type:'piege',title:'⚠️ P1 — Dalles',detection:'Perception DD 13',disarm:'Outils de voleur DD 13',damage:'2d6',effect:'Dégâts perforants'},
+      P2:{type:'piege',title:'⚠️ P2 — Chaîne',detection:'Perception DD 14',disarm:'Outils de voleur DD 14',damage:'2d6',effect:'Dégâts contondants + À terre'},
+      P3:{type:'piege',title:'⚠️ P3 — Mur écrasant',detection:'Perception DD 15',disarm:'Outils de voleur DD 15',damage:'3d6',effect:'Dégâts contondants + repoussement'},
+      P4:{type:'piege',title:'⚠️ P4 — Rune de feu',detection:'Arcanes DD 15',disarm:'Arcanes DD 15 ou Outils de voleur DD 16',damage:'3d6',effect:'Dégâts de feu'},
+      P5:{type:'piege',title:'⚠️ P5 — Faux coffre',detection:'Perception DD 15',disarm:'Outils de voleur DD 14',damage:'2d6',effect:'Dégâts de poison + Empoisonné'},
+      P6:{type:'piege',title:'⚠️ P6 — Halo',detection:'Perception DD 16 ou Arcanes DD 16',disarm:'Arcanes DD 16 ou Outils de voleur DD 17',damage:'2d8',effect:'Dégâts de force + repoussement'},
       S1:{type:'secret',title:'👁️ S1 — Chambre secrète abandonnée',difficulty:'Investigation DD 15',body:'Salle principalement narrative : vieux meubles, traces d’anciens occupants et documents abîmés. Aucune récompense financière importante. Les documents peuvent fournir du lore.'},
       S2:{type:'secret',title:'👁️ S2 — Sanctuaire secret',difficulty:'Investigation DD 17',body:'Sanctuaire ancien. Il contient le coffre majeur C3 et un indice concernant le niveau 2.'}
     }[id];
@@ -1871,7 +1871,7 @@ function openCombatKaelenShade(){
       if(data.note)html+='<p class="small">'+escapeHTML(data.note)+'</p>';
       html+='<div class="donjon-action"><h4>Donner les loots</h4><div class="donjon-target-grid">'+inventoryPlayers.map((n,i)=>'<label><input type="checkbox" name="donjonLootPlayer" value="'+i+'"> '+escapeHTML(n)+'</label>').join('')+'</div><button type="button" class="link" onclick="giveDungeonLoot(\''+id+'\')">🎁 Donner les loots</button><div id="donjonActionStatus" class="donjon-status"></div></div>';
     }else if(data.type==='piege'){
-      html+='<p><b>Désamorçage :</b> '+escapeHTML(data.difficulty)+'</p><p><b>Dégâts :</b> <strong>'+escapeHTML(data.damage)+'</strong> '+escapeHTML(data.effect)+'</p><div class="donjon-action"><h4>Joueurs touchés</h4><div class="donjon-target-grid">'+combatPlayerNames.map((n,i)=>'<label><input type="checkbox" name="donjonTrapPlayer" value="'+i+'"> '+escapeHTML(n)+'</label>').join('')+'</div><button type="button" class="link danger" onclick="applyDungeonTrap(\''+id+'\')">💥 Infliger les dégâts</button><div id="donjonActionStatus" class="donjon-status"></div></div>';
+      html+='<p><b>Détection :</b> '+escapeHTML(data.detection)+'</p><p><b>Désamorçage :</b> '+escapeHTML(data.disarm)+'</p><p><b>Dégâts :</b> <strong>'+escapeHTML(data.damage)+'</strong> '+escapeHTML(data.effect)+'</p><div class="donjon-action"><h4>Joueurs touchés</h4><div class="donjon-target-grid">'+combatPlayerNames.map((n,i)=>'<label><input type="checkbox" name="donjonTrapPlayer" value="'+i+'"> '+escapeHTML(n)+'</label>').join('')+'</div><button type="button" class="link danger" onclick="applyDungeonTrap(\''+id+'\')">💥 Infliger les dégâts</button><div id="donjonActionStatus" class="donjon-status"></div></div>';
     }else{
       html+='<p><b>Découverte :</b> '+escapeHTML(data.difficulty)+'</p><p>'+escapeHTML(data.body||'')+'</p>';
     }
