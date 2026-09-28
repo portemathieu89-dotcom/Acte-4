@@ -274,9 +274,8 @@ h2{font-family:Georgia,serif;color:var(--gold2);font-size:32px;text-shadow:0 2px
   </div>
   <div class="donjon-tools">
     <button type="button" class="link" onclick="setDungeonTool('move')">🟢 Déplacer le pion</button>
-    <button type="button" class="link" onclick="setDungeonTool('draw')">✏️ Tracer le chemin</button>
     <button type="button" class="link" onclick="clearDungeonPath()">🗑️ Effacer le tracé</button>
-    <span id="donjonToolStatus" class="small">Mode : déplacement du pion</span>
+    <span id="donjonToolStatus" class="small">Le déplacement trace automatiquement le chemin</span>
   </div>
 </div>
 <div class="donjon-map-card">
@@ -1750,7 +1749,7 @@ function openCombatKaelenShade(){
     try{localStorage.setItem(dungeonKey,JSON.stringify(dungeonState));}catch(e){}
   }
 
-  let dungeonTool='move',drawing=false,points=[],initialized=false;
+  let drawing=false,points=[],initialized=false;
 
   window.selectDungeonLevel=function(level){
     if(level!==1)return;
@@ -1765,9 +1764,8 @@ function openCombatKaelenShade(){
   };
 
   window.setDungeonTool=function(tool){
-    dungeonTool=tool==='draw'?'draw':'move';
     const status=document.getElementById('donjonToolStatus');
-    if(status)status.textContent=dungeonTool==='draw'?'Mode : tracé du chemin':'Mode : déplacement du pion';
+    if(status)status.textContent='Le déplacement trace automatiquement le chemin';
   };
 
   window.clearDungeonPath=function(){
@@ -1809,59 +1807,43 @@ function openCombatKaelenShade(){
     renderPath();
 
     token.addEventListener('pointerdown',function(e){
-      if(dungeonTool!=='move')return;
       e.preventDefault();
       try{token.setPointerCapture(e.pointerId);}catch(err){}
+
+      const start=stagePoint(e);
+      const currentPath=[start];
+      dungeonState.path.push(currentPath);
+      const pathIndex=dungeonState.path.length-1;
+
       const move=function(ev){
         const p=stagePoint(ev);
         if(!p)return;
         dungeonState.token=p;
         token.style.left=p.x+'%';
         token.style.top=p.y+'%';
+
+        const last=currentPath[currentPath.length-1];
+        if(!last || Math.hypot(p.x-last.x,p.y-last.y)>0.5){
+          currentPath.push(p);
+          renderPath();
+        }
       };
+
       const finish=function(){
         stage.removeEventListener('pointermove',move);
         stage.removeEventListener('pointerup',finish);
         stage.removeEventListener('pointercancel',finish);
+        const path=dungeonState.path[pathIndex];
+        if(path && path.length<2)dungeonState.path.splice(pathIndex,1);
         saveDungeon();
+        renderPath();
       };
+
       stage.addEventListener('pointermove',move);
       stage.addEventListener('pointerup',finish,{once:true});
       stage.addEventListener('pointercancel',finish,{once:true});
-    });
-
-    stage.addEventListener('pointerdown',function(e){
-      if(dungeonTool!=='draw')return;
-      if(e.target.closest && (e.target.closest('.donjon-hotspot') || e.target.closest('#donjonPartyToken')))return;
-      const p=stagePoint(e);
-      if(!p)return;
-      drawing=true;
-      points=[p];
-      try{stage.setPointerCapture(e.pointerId);}catch(err){}
-    });
-
-    stage.addEventListener('pointermove',function(e){
-      if(!drawing)return;
-      const p=stagePoint(e);
-      if(!p)return;
-      const last=points[points.length-1];
-      if(!last || Math.hypot(p.x-last.x,p.y-last.y)>0.6){
-        points.push(p);
-        const svg=document.getElementById('donjonPathSvg');
-        if(svg)svg.innerHTML=dungeonState.path.map(q=>'<path d="'+pathD(q)+'"></path>').join('')+'<path d="'+pathD(points)+'"></path>';
-      }
-    });
-
-    const finishDrawing=function(){
-      if(!drawing)return;
-      drawing=false;
-      if(points.length>1)dungeonState.path.push(points.slice());
-      points=[];
       saveDungeon();
-      renderPath();
-    };
-    stage.addEventListener('pointerup',finishDrawing);
-    stage.addEventListener('pointercancel',finishDrawing);
+    });
   }
 
   window.openDungeonElement=function(id){
@@ -1959,5 +1941,4 @@ function openCombatKaelenShade(){
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootDungeon,{once:true});
   else bootDungeon();
 })();
-</script>>
-</body></html>
+</script
