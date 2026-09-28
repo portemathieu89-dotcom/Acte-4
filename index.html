@@ -778,7 +778,7 @@ function rollInlineDice(count,sides,modifier,button){
    combatDamageState[currentOpenFicheId+'_'+targetIndex]={actual:total};
    saveCombatDamageState();
    if(out)out.innerHTML+='<span class="combat-auto-damage"> → 🛡️ -'+result.tempLost+' / ❤️ -'+result.hpLost+'</span>';
-   if(attackResult)attackResult.dataset.hit='0';if(attack?.hit){attack.hit=false;saveCombatAttackState()} if(save){delete combatSaveState[currentOpenFicheId];saveCombatSaveState();}
+   if(save){delete combatSaveState[currentOpenFicheId];saveCombatSaveState();}
  }
 }
 function rollInlineDiceMulti(parts,button){
@@ -819,7 +819,7 @@ function rollInlineDiceMulti(parts,button){
    combatDamageState[currentOpenFicheId+'_'+targetIndex]={actual:total};
    saveCombatDamageState();
    if(out)out.innerHTML+='<span class="combat-auto-damage"> → 🛡️ -'+result.tempLost+' / ❤️ -'+result.hpLost+'</span>';
-   if(attackResult)attackResult.dataset.hit='0';if(attack?.hit){attack.hit=false;saveCombatAttackState()} if(save){delete combatSaveState[currentOpenFicheId];saveCombatSaveState();}
+   if(save){delete combatSaveState[currentOpenFicheId];saveCombatSaveState();}
  }
 }
 function rollCombatDice(id){
