@@ -260,7 +260,7 @@ h2{font-family:Georgia,serif;color:var(--gold2);font-size:32px;text-shadow:0 2px
 <section id="minuteurDegats" class="hidden">
 <h2>⏱️ Minuteur de dégâts</h2>
 <div class="card">
-<p>Minuteur général du MJ : choisissez un intervalle et un jet de dégâts. À chaque échéance, un son est joué et les dégâts sont automatiquement appliqués aux 4 joueurs du combat actuellement ouvert.</p>
+<p>Minuteur général du MJ : choisissez un intervalle et un jet de dégâts. À chaque échéance, un son est joué et les dégâts sont automatiquement appliqués aux 5 joueurs du combat actuellement ouvert.</p>
 <div class="necro-hazard-timer" id="damageTimer">
 <h3>🎲 Dégâts automatiques</h3>
 <div class="necro-hazard-controls">
@@ -659,7 +659,7 @@ function renderInitiativeTracker(id){
    <div class="initiative-head"><strong>🎲 Initiative</strong><span class="initiative-round">Round ${state.round}</span></div>
    <div class="initiative-actions"><button type="button" onclick="nextInitiative('${id}',-1)">◀ Préc.</button><button type="button" onclick="nextInitiative('${id}',1)">Suivant ▶</button></div>
    <div class="initiative-list">${rows||'<div class="initiative-empty">Aucun combattant.</div>'}</div>
-   <div class="initiative-help">Les 4 joueurs sont toujours présents. Les ennemis correspondent au combat ouvert.</div>
+   <div class="initiative-help">Les 5 joueurs sont toujours présents. Les ennemis correspondent au combat ouvert.</div>
    <button type="button" class="link" style="width:100%;margin-top:7px;padding:5px 7px;font-size:11px" onclick="resetInitiative('${id}')">↺ Réinitialiser les initiatives</button>
    <div class="combat-dice-panel">
      <div class="combat-dice-title">🎲 Lancer de dés — MJ</div>
@@ -1111,12 +1111,12 @@ function openPortTV(){openTVPage('boutique_port_tv.html','Port')}
 
 
 const combatPlayersKey='theLastHeartCombatPlayers';
-const combatPlayerNames=['Fïnn','Akio','Sylas','Syvens'];
+const combatPlayerNames=['Fïnn','Akio','Sylas','Syvens','Destrier'];
 let combatPlayers=JSON.parse(localStorage.getItem(combatPlayersKey)||'null');
-if(!Array.isArray(combatPlayers)||combatPlayers.length!==combatPlayerNames.length){
+if(!Array.isArray(combatPlayers)){
  combatPlayers=combatPlayerNames.map(name=>({name,current:'',max:'',ca:'',temp:0}));
 }else{
- combatPlayers=combatPlayers.map((p,i)=>({name:combatPlayerNames[i],current:p?.current??'',max:p?.max??'',ca:p?.ca??'',temp:Math.max(0,Math.floor(Number(p?.temp)||0))}));
+ combatPlayers=combatPlayerNames.map((name,i)=>{const p=combatPlayers[i]||{};return {name,current:p?.current??'',max:p?.max??'',ca:p?.ca??'',temp:Math.max(0,Math.floor(Number(p?.temp)||0))}});
 }
 function saveCombatPlayers(){localStorage.setItem(combatPlayersKey,JSON.stringify(combatPlayers))}
 function setCombatPlayerStat(i,field,value){
@@ -1144,10 +1144,16 @@ const combatDpsKey='theLastHeartCombatDPS';
 let combatDpsState=JSON.parse(localStorage.getItem(combatDpsKey)||'null')||{};
 function saveCombatDps(){localStorage.setItem(combatDpsKey,JSON.stringify(combatDpsState))}
 function ensureCombatDps(id){
- if(!combatDpsState[id]||typeof combatDpsState[id]!=='object')combatDpsState[id]={startedAt:null,total:0,players:[0,0,0,0],heals:[0,0,0,0]};
+ if(!combatDpsState[id]||typeof combatDpsState[id]!=='object')combatDpsState[id]={startedAt:null,total:0,healTotal:0,players:[],heals:[]};
  const s=combatDpsState[id];
- if(!Array.isArray(s.players)||s.players.length!==combatPlayerNames.length)s.players=[0,0,0,0];
- if(!Array.isArray(s.heals)||s.heals.length!==combatPlayerNames.length)s.heals=[0,0,0,0];
+ if(!Array.isArray(s.players))s.players=[];
+ if(!Array.isArray(s.heals))s.heals=[];
+ while(s.players.length<combatPlayerNames.length)s.players.push(0);
+ while(s.heals.length<combatPlayerNames.length)s.heals.push(0);
+ s.players=s.players.slice(0,combatPlayerNames.length);
+ s.heals=s.heals.slice(0,combatPlayerNames.length);
+ if(!Number.isFinite(Number(s.total)))s.total=0;
+ if(!Number.isFinite(Number(s.healTotal)))s.healTotal=0;
  return s;
 }
 function getActivePlayerIndex(id){
@@ -1245,7 +1251,7 @@ ame_demoniaque_p2:{name:'Âme démoniaque — P2 : L’âme libérée',enemies:[
 };
 let combatState=JSON.parse(localStorage.getItem('theLastHeartCombatPV')||'null')||{name:'',enemies:[]};
 function saveCombatPV(){localStorage.setItem('theLastHeartCombatPV',JSON.stringify(combatState))}
-const initiativePlayers=['Fïnn','Akio','Sylas','Syvens'];
+const initiativePlayers=['Fïnn','Akio','Sylas','Syvens','Destrier'];
 const initiativeStorageKey='theLastHeartInitiative';
 let initiativeState=JSON.parse(localStorage.getItem(initiativeStorageKey)||'null')||{};
 function saveInitiative(){localStorage.setItem(initiativeStorageKey,JSON.stringify(initiativeState))}
