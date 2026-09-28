@@ -2087,3 +2087,14 @@ function openCombatKaelenShade(){
   else bootDungeon();
 })();
 </script>
+<script>
+function filterCards(input, gridId){
+  const grid=document.getElementById(gridId);
+  if(!grid)return;
+  const query=String(input?.value||'').trim().toLowerCase();
+  grid.querySelectorAll('.filterable').forEach(function(card){
+    const text=String(card.textContent||'').toLowerCase();
+    card.style.display=(!query||text.includes(query))?'':'none';
+  });
+}
+</script>
