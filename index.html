@@ -268,7 +268,7 @@ h2{font-family:Georgia,serif;color:var(--gold2);font-size:32px;text-shadow:0 2px
 <div class="donjon-toolbar">
   <div class="donjon-levels">
     <button type="button" class="donjon-level active" onclick="selectDungeonLevel(1)">Niveau 1</button>
-    <button type="button" class="donjon-level" disabled>Niveau 2</button>
+    <button type="button" class="donjon-level" onclick="selectDungeonLevel(2)">Niveau 2</button>
     <button type="button" class="donjon-level" disabled>Niveau 3</button>
     <button type="button" class="donjon-level" disabled>Niveau 4</button>
   </div>
@@ -284,17 +284,7 @@ h2{font-family:Georgia,serif;color:var(--gold2);font-size:32px;text-shadow:0 2px
       <img id="donjonMapImage" src="images/acte/donjons/niveau1.webp" alt="Nécropolis d'Aether — Niveau 1">
       <svg id="donjonPathSvg" class="donjon-path-svg" viewBox="0 0 1312 1199" preserveAspectRatio="none" aria-hidden="true"></svg>
       <button id="donjonPartyToken" class="donjon-party-token" type="button" title="Position actuelle des joueurs">👥</button>
-      <div class="donjon-hotspot coffre" style="left:13.5%;top:31.5%" onclick="openDungeonElement('C1')">🧰<span>C1</span></div>
-      <div class="donjon-hotspot coffre" style="left:66.0%;top:9.5%" onclick="openDungeonElement('C2')">🧰<span>C2</span></div>
-      <div class="donjon-hotspot coffre" style="left:88.5%;top:63.0%" onclick="openDungeonElement('C3')">🧰<span>C3</span></div>
-      <div class="donjon-hotspot piege" style="left:14.7%;top:45.0%" onclick="openDungeonElement('P2')">⚠️<span>P2</span></div>
-      <div class="donjon-hotspot piege" style="left:49.0%;top:18.0%" onclick="openDungeonElement('P3')">⚠️<span>P3</span></div>
-      <div class="donjon-hotspot piege" style="left:63.0%;top:37.5%" onclick="openDungeonElement('P4')">⚠️<span>P4</span></div>
-      <div class="donjon-hotspot piege" style="left:71.0%;top:61.5%" onclick="openDungeonElement('P5')">⚠️<span>P5</span></div>
-      <div class="donjon-hotspot piege" style="left:87.0%;top:45.0%" onclick="openDungeonElement('P6')">⚠️<span>P6</span></div>
-      <div class="donjon-hotspot piege" style="left:48.5%;top:66.0%" onclick="openDungeonElement('P1')">⚠️<span>P1</span></div>
-      <div class="donjon-hotspot secret" style="left:34.0%;top:8.5%" onclick="openDungeonElement('S1')">👁️<span>S1</span></div>
-      <div class="donjon-hotspot secret" style="left:89.0%;top:61.0%" onclick="openDungeonElement('S2')">👁️<span>S2</span></div>
+      <div id="donjonHotspots"></div>
     </div>
   </div>
 </div>
@@ -303,19 +293,6 @@ h2{font-family:Georgia,serif;color:var(--gold2);font-size:32px;text-shadow:0 2px
     <button type="button" class="donjon-info-close" onclick="closeDungeonElement()">✕</button>
     <div id="donjonInfoContent"></div>
   </div>
-</div>
-</div>
-<div id="acteMusiques" class="section"><h3>🎵 Musiques</h3>
-<div class="card">
-<h3 id="acteMusicTitle">🎵 Musiques de la Nécropole d'Aether</h3>
-<p style="opacity:.8;">Musiques propres à l'Acte 4. Clique sur un morceau pour le lancer, ou utilise les boutons pour naviguer dans la playlist.</p>
-<audio id="acteMusicAudio" controls preload="metadata" style="width:100%;margin:12px 0;"></audio>
-<div style="margin:8px 0;">
-<button class="link" type="button" id="acteMusicPrev">⏮️ Précédent</button>
-<button class="link" type="button" id="acteMusicNext">⏭️ Suivant</button>
-</div>
-<div id="acteMusicNow" style="font-weight:bold;margin:10px 0;"></div>
-<ol id="acteMusicList" style="line-height:1.8;margin-top:8px;"></ol>
 </div>
 </div>
 </section>
@@ -1735,32 +1712,151 @@ function openCombatKaelenShade(){
 <script>
 (function(){
   const dungeonKey='theLastHeartDungeonState';
-  const defaultDungeon={level:1,token:{x:50,y:78},path:[],opened:{},foundSecrets:{}};
-  let dungeonState;
-  try{
-    dungeonState=JSON.parse(localStorage.getItem(dungeonKey)||'null');
-  }catch(e){ dungeonState=null; }
-  if(!dungeonState || typeof dungeonState!=='object') dungeonState={...defaultDungeon,token:{...defaultDungeon.token},path:[],opened:{},foundSecrets:{}};
-  if(!Array.isArray(dungeonState.path)) dungeonState.path=[];
-  if(!dungeonState.token || typeof dungeonState.token!=='object') dungeonState.token={x:50,y:78};
-  if(!dungeonState.opened || typeof dungeonState.opened!=='object') dungeonState.opened={};
+  const defaultLevel1={token:{x:50,y:78},path:[],opened:{},foundSecrets:{}};
+  const defaultLevel2={token:{x:50,y:88},path:[],opened:{},foundSecrets:{}};
+  let dungeonState=null;
+
+  try{dungeonState=JSON.parse(localStorage.getItem(dungeonKey)||'null');}catch(e){dungeonState=null;}
+
+  if(!dungeonState || typeof dungeonState!=='object'){
+    dungeonState={level:1,levels:{1:defaultLevel1,2:defaultLevel2}};
+  }else if(!dungeonState.levels){
+    dungeonState={
+      level:dungeonState.level===2?2:1,
+      levels:{
+        1:{
+          token:dungeonState.token&&typeof dungeonState.token==='object'?dungeonState.token:{...defaultLevel1.token},
+          path:Array.isArray(dungeonState.path)?dungeonState.path:[],
+          opened:dungeonState.opened&&typeof dungeonState.opened==='object'?dungeonState.opened:{},
+          foundSecrets:dungeonState.foundSecrets&&typeof dungeonState.foundSecrets==='object'?dungeonState.foundSecrets:{}
+        },
+        2:{...defaultLevel2,token:{...defaultLevel2.token},path:[],opened:{},foundSecrets:{}}
+      }
+    };
+  }
+
+  if(!dungeonState.levels[1])dungeonState.levels[1]={...defaultLevel1,token:{...defaultLevel1.token},path:[],opened:{},foundSecrets:{}};
+  if(!dungeonState.levels[2])dungeonState.levels[2]={...defaultLevel2,token:{...defaultLevel2.token},path:[],opened:{},foundSecrets:{}};
+
+  [1,2].forEach(function(level){
+    const s=dungeonState.levels[level];
+    if(!s.token||typeof s.token!=='object')s.token=level===1?{...defaultLevel1.token}:{...defaultLevel2.token};
+    if(!Array.isArray(s.path))s.path=[];
+    if(!s.opened||typeof s.opened!=='object')s.opened={};
+    if(!s.foundSecrets||typeof s.foundSecrets!=='object')s.foundSecrets={};
+  });
 
   function saveDungeon(){
     try{localStorage.setItem(dungeonKey,JSON.stringify(dungeonState));}catch(e){}
   }
 
-  let drawing=false,points=[],initialized=false;
+  function currentLevel(){return dungeonState.level===2?2:1;}
+  function currentState(){return dungeonState.levels[currentLevel()];}
+
+  const dungeonData={
+    1:{
+      image:'images/acte/donjons/niveau1.webp',
+      alt:"Nécropolis d'Aether — Niveau 1",
+      hotspots:[
+        {id:'C1',kind:'coffre',x:13.5,y:31.5},
+        {id:'C2',kind:'coffre',x:66.0,y:9.5},
+        {id:'C3',kind:'coffre',x:88.5,y:63.0},
+        {id:'P1',kind:'piege',x:48.5,y:66.0},
+        {id:'P2',kind:'piege',x:14.7,y:45.0},
+        {id:'P3',kind:'piege',x:49.0,y:18.0},
+        {id:'P4',kind:'piege',x:63.0,y:37.5},
+        {id:'P5',kind:'piege',x:71.0,y:61.5},
+        {id:'P6',kind:'piege',x:87.0,y:45.0},
+        {id:'S1',kind:'secret',x:34.0,y:8.5},
+        {id:'S2',kind:'secret',x:89.0,y:61.0}
+      ]
+    },
+    2:{
+      image:'images/acte/donjons/niveau2.webp',
+      alt:"Nécropolis d'Aether — Niveau 2",
+      hotspots:[
+        {id:'C1',kind:'coffre',x:38.0,y:10.0},
+        {id:'S1',kind:'secret',x:67.5,y:9.2},
+        {id:'P3',kind:'piege',x:50.0,y:17.5},
+        {id:'P4',kind:'piege',x:15.3,y:37.0},
+        {id:'P2',kind:'piege',x:15.0,y:46.0},
+        {id:'P5',kind:'piege',x:78.5,y:36.5},
+        {id:'P6',kind:'piege',x:84.3,y:46.0},
+        {id:'C2',kind:'coffre',x:11.5,y:61.5},
+        {id:'P1',kind:'piege',x:50.0,y:67.2},
+        {id:'S2',kind:'secret',x:91.0,y:61.5},
+        {id:'C3',kind:'coffre',x:91.5,y:66.3},
+        {id:'HALO',kind:'halo',x:50.0,y:46.0}
+      ]
+    }
+  };
+
+  const dungeonElements={
+    1:{
+      C1:{type:'coffre',title:'🧰 Coffre C1',difficulty:'Perception DD 13 · Investigation DD 14 · Outils de voleur DD 14',loot:[['90 po',1],['Potion de soins',1],['Gemme — 25 po',1]],note:'Si le piège est déclenché : sauvegarde de Constitution DD 15, 3d8 foudre en cas d’échec.'},
+      C2:{type:'coffre',title:'🧰 Coffre C2',difficulty:'Perception DD 15 · Investigation DD 16 · Outils de voleur DD 17',loot:[['150 po',1],['Potion de soins',2],['Gemme — 50 po',1]]},
+      C3:{type:'coffre',title:'🧰 Coffre majeur C3',difficulty:'Perception DD 17 · Arcanes DD 16 · Outils de voleur DD 18 · Constitution DD 15',loot:[['200 po',1],['Potion de soins supérieure',1],['Gemme — 100 po',1],['Objet magique mineur',1]],note:'C3 se trouve dans S2. Le sanctuaire contient également un indice concernant le niveau 2.'},
+      P1:{type:'piege',title:'⚠️ P1 — Dalles',detection:'Perception DD 13',disarm:'Outils de voleur DD 13',damage:'2d6',effect:'Dégâts perforants'},
+      P2:{type:'piege',title:'⚠️ P2 — Chaîne',detection:'Perception DD 14',disarm:'Outils de voleur DD 14',damage:'2d6',effect:'Dégâts contondants + À terre'},
+      P3:{type:'piege',title:'⚠️ P3 — Mur écrasant',detection:'Perception DD 15',disarm:'Outils de voleur DD 15',damage:'3d6',effect:'Dégâts contondants + repoussement'},
+      P4:{type:'piege',title:'⚠️ P4 — Rune de feu',detection:'Arcanes DD 15',disarm:'Arcanes DD 15 ou Outils de voleur DD 16',damage:'3d6',effect:'Dégâts de feu'},
+      P5:{type:'piege',title:'⚠️ P5 — Faux coffre',detection:'Perception DD 15',disarm:'Outils de voleur DD 14',damage:'2d6',effect:'Dégâts de poison + Empoisonné'},
+      P6:{type:'piege',title:'⚠️ P6 — Halo',detection:'Perception DD 16 ou Arcanes DD 16',disarm:'Arcanes DD 16 ou Outils de voleur DD 17',damage:'2d8',effect:'Dégâts de force + repoussement'},
+      S1:{type:'secret',title:'👁️ S1 — Chambre secrète abandonnée',difficulty:'Investigation DD 15',body:'Salle principalement narrative : vieux meubles, traces d’anciens occupants et documents abîmés. Aucune récompense financière importante. Les documents peuvent fournir du lore.'},
+      S2:{type:'secret',title:'👁️ S2 — Sanctuaire secret',difficulty:'Investigation DD 17',body:'Sanctuaire ancien. Il contient le coffre majeur C3 et un indice concernant le niveau 2.'}
+    },
+    2:{
+      C1:{type:'coffre',title:'🧰 C1 — Coffre de la salle Nord-Ouest',difficulty:'Perception DD 14 · Investigation DD 15 · Outils de voleur DD 15',loot:[['125 po',1],['Potion de soins',1],['Gemme — 50 po',1]],trap:'Lames rétractables : sauvegarde de Dextérité DD 14. Échec : 3d6 tranchants ; réussite : moitié.'},
+      C2:{type:'coffre',title:'🧰 C2 — Coffre de l’aile Sud-Ouest',difficulty:'Perception DD 15 · Investigation DD 16 · Outils de voleur DD 17',loot:[['225 po',1],['Potion de soins',2],['Gemme — 75 po',1]],trap:'Sol effondrant : sauvegarde de Dextérité DD 15. Échec : 3d8 contondants, chute dans une fosse et 3 m de déplacement supplémentaire pour sortir ; réussite : moitié des dégâts et pas de chute.'},
+      C3:{type:'coffre',title:'🧰 C3 — Coffre majeur de S2',difficulty:'Arcanes DD 17 ou Perception DD 18 · Comprendre : Arcanes DD 17 · Désamorçage : Arcanes DD 18 ou Outils de voleur DD 19',loot:[['300 po',1],['Potion de soins supérieure',1],['Gemme — 150 po',1],['Parchemin de sort niveau 2',1],['Objet magique mineur adapté au groupe',1]],trap:'Explosion arcanique : sauvegarde de Dextérité DD 16. Échec : 4d8 force et repoussement de 3 m ; réussite : moitié des dégâts.',note:'C3 est dans S2. Le sanctuaire fournit également un indice concernant le niveau 3.'},
+      P1:{type:'piege',title:'⚠️ P1 — Piège du couloir Sud',detection:'Perception DD 14',understand:'Investigation DD 15',disarm:'—',damage:'3d6',effect:'Dégâts perforants. Sauvegarde de Dextérité DD 14 : moitié en cas de réussite.'},
+      P2:{type:'piege',title:'⚠️ P2 — Piège à pression de l’aile Ouest',detection:'Investigation DD 15',understand:'—',disarm:'Outils de voleur DD 16',damage:'2d8',effect:'Dégâts contondants. Sauvegarde de Dextérité DD 15 ; échec : À terre.'},
+      P3:{type:'piege',title:'⚠️ P3 — Rune de paralysie',detection:'Arcanes DD 15 ou Perception DD 17',understand:'Arcanes DD 16',disarm:'Arcanes DD 17',damage:'2d8',effect:'Dégâts de force. Sauvegarde de Constitution DD 15 ; échec : Entravé jusqu’à la fin du prochain tour. Réussite : moitié des dégâts et aucun effet supplémentaire.'},
+      P4:{type:'piege',title:'⚠️ P4 — Bassin maudit',detection:'Perception DD 16',understand:'Arcanes DD 16',disarm:'—',damage:'3d8',effect:'Dégâts de froid. Sauvegarde de Constitution DD 15 ; échec : vitesse réduite de 3 m pendant 1 minute, nouveau jet à la fin de chaque tour.'},
+      P5:{type:'piege',title:'⚠️ P5 — Piège du mécanisme',detection:'Investigation DD 16',understand:'Investigation DD 17',disarm:'Outils de voleur DD 17',damage:'3d6',effect:'Dégâts contondants. Sauvegarde de Dextérité DD 15 ; échec : déplacement de 3 m. Réussite : moitié et pas de déplacement.'},
+      P6:{type:'piege',title:'⚠️ P6 — Rune de foudre',detection:'Arcanes DD 16 ou Perception DD 18',understand:'Arcanes DD 17',disarm:'Arcanes DD 18',damage:'4d6',effect:'Dégâts de foudre. Sauvegarde de Dextérité DD 16 ; réussite : moitié. Peut toucher jusqu’à deux créatures supplémentaires proches de la cible initiale.'},
+      S1:{type:'secret',title:'👁️ S1 — Salle secrète abandonnée',difficulty:'Investigation DD 16',body:'Une ancienne table d’étude, des livres très abîmés, des outils anciens et des traces indiquant que quelqu’un utilisait cette pièce autrefois. Pas de trésor important : récompense d’exploration et de lore.'},
+      S2:{type:'secret',title:'👁️ S2 — Sanctuaire secret',difficulty:'Investigation DD 18',body:'Un ancien sanctuaire dissimulé derrière un mécanisme mural. Il contient C3 et une inscription ancienne donnant un indice concernant le niveau 3.'},
+      HALO:{type:'halo',title:'🔵 Halo central — Niveau 2',difficulty:'Arcanes DD 16',body:'Le halo est alimenté par une énergie similaire à celle rencontrée au niveau 1. Une interaction directe sans précaution déclenche une réaction.',damage:'2d8',effect:'Sauvegarde de Constitution DD 15 : 2d8 force et repoussement de 3 m ; réussite : moitié des dégâts.'}
+    }
+  };
+
+  function getElementData(id){
+    return dungeonElements[currentLevel()]&&dungeonElements[currentLevel()][id];
+  }
+
+  function renderHotspots(){
+    const wrap=document.getElementById('donjonHotspots');
+    if(!wrap)return;
+    const levelData=dungeonData[currentLevel()];
+    wrap.innerHTML=levelData.hotspots.map(function(h){
+      const icon=h.kind==='coffre'?'🧰':h.kind==='secret'?'👁️':h.kind==='halo'?'🔵':'⚠️';
+      const cls=h.kind==='coffre'?'coffre':h.kind==='secret'?'secret':h.kind==='halo'?'halo':'piege';
+      return '<div class="donjon-hotspot '+cls+'" style="left:'+h.x+'%;top:'+h.y+'%" onclick="openDungeonElement(\''+h.id+'\')">'+icon+'<span>'+h.id+'</span></div>';
+    }).join('');
+  }
+
+  function applyLevelVisuals(){
+    const level=currentLevel();
+    const data=dungeonData[level];
+    const img=document.getElementById('donjonMapImage');
+    if(img){img.src=data.image;img.alt=data.alt;}
+    document.querySelectorAll('.donjon-level').forEach(function(b){
+      b.classList.toggle('active',b.textContent.indexOf('Niveau '+level)!==-1);
+    });
+    renderHotspots();
+    const s=currentState();
+    const token=document.getElementById('donjonPartyToken');
+    if(token){token.style.left=s.token.x+'%';token.style.top=s.token.y+'%';}
+    renderPath();
+  }
 
   window.selectDungeonLevel=function(level){
-    if(level!==1)return;
-    dungeonState.level=1;
+    if(!dungeonData[level])return;
+    dungeonState.level=level;
     saveDungeon();
-    document.querySelectorAll('.donjon-level').forEach(b=>b.classList.toggle('active',b.textContent.includes('Niveau 1')));
-    const token=document.getElementById('donjonPartyToken');
-    if(token){
-      token.style.left=dungeonState.token.x+'%';
-      token.style.top=dungeonState.token.y+'%';
-    }
+    applyLevelVisuals();
+    closeDungeonElement();
   };
 
   window.setDungeonTool=function(tool){
@@ -1769,7 +1865,7 @@ function openCombatKaelenShade(){
   };
 
   window.clearDungeonPath=function(){
-    dungeonState.path=[];
+    currentState().path=[];
     saveDungeon();
     renderPath();
   };
@@ -1786,15 +1882,17 @@ function openCombatKaelenShade(){
   }
 
   function pathD(path){
-    return path.map((q,i)=>(i?'L':'M')+(q.x/100*1312)+' '+(q.y/100*1199)).join(' ');
+    return path.map(function(q,i){return (i?'L':'M')+(q.x/100*1312)+' '+(q.y/100*1199);}).join(' ');
   }
 
   function renderPath(){
     const svg=document.getElementById('donjonPathSvg');
     if(!svg)return;
-    svg.innerHTML=dungeonState.path.map(p=>'<path d="'+pathD(p)+'"></path>').join('');
+    const path=currentState().path||[];
+    svg.innerHTML=path.map(function(p){return '<path d="'+pathD(p)+'"></path>';}).join('');
   }
 
+  let initialized=false;
   function initDungeonMap(){
     if(initialized)return;
     const stage=document.getElementById('donjonMapStage');
@@ -1802,28 +1900,26 @@ function openCombatKaelenShade(){
     if(!stage||!token)return;
     initialized=true;
 
-    token.style.left=dungeonState.token.x+'%';
-    token.style.top=dungeonState.token.y+'%';
-    renderPath();
+    applyLevelVisuals();
 
     token.addEventListener('pointerdown',function(e){
       e.preventDefault();
       try{token.setPointerCapture(e.pointerId);}catch(err){}
-
       const start=stagePoint(e);
+      if(!start)return;
+      const s=currentState();
       const currentPath=[start];
-      dungeonState.path.push(currentPath);
-      const pathIndex=dungeonState.path.length-1;
+      s.path.push(currentPath);
+      const pathIndex=s.path.length-1;
 
       const move=function(ev){
         const p=stagePoint(ev);
         if(!p)return;
-        dungeonState.token=p;
+        s.token=p;
         token.style.left=p.x+'%';
         token.style.top=p.y+'%';
-
         const last=currentPath[currentPath.length-1];
-        if(!last || Math.hypot(p.x-last.x,p.y-last.y)>0.5){
+        if(!last||Math.hypot(p.x-last.x,p.y-last.y)>0.5){
           currentPath.push(p);
           renderPath();
         }
@@ -1833,8 +1929,8 @@ function openCombatKaelenShade(){
         stage.removeEventListener('pointermove',move);
         stage.removeEventListener('pointerup',finish);
         stage.removeEventListener('pointercancel',finish);
-        const path=dungeonState.path[pathIndex];
-        if(path && path.length<2)dungeonState.path.splice(pathIndex,1);
+        const path=s.path[pathIndex];
+        if(path&&path.length<2)s.path.splice(pathIndex,1);
         saveDungeon();
         renderPath();
       };
@@ -1847,34 +1943,35 @@ function openCombatKaelenShade(){
   }
 
   window.openDungeonElement=function(id){
-    const data={
-      C1:{type:'coffre',title:'🧰 Coffre C1',difficulty:'DD 13–14',loot:[['90 po',1],['Potion de soins',1],['Gemme — 25 po',1]]},
-      C2:{type:'coffre',title:'🧰 Coffre C2',difficulty:'DD 15–16',loot:[['150 po',1],['Potion de soins',2],['Gemme — 50 po',1]]},
-      C3:{type:'coffre',title:'🧰 Coffre majeur C3',difficulty:'Perception DD 17 · Arcanes DD 16 · Outils de voleur DD 18 · Constitution DD 15',loot:[['200 po',1],['Potion de soins supérieure',1],['Gemme — 100 po',1],['Objet magique mineur',1]],note:'Si le piège du coffre est déclenché : 3d8 foudre en cas d’échec de Constitution DD 15. Le sanctuaire contient également un indice concernant le niveau 2.'},
-      P1:{type:'piege',title:'⚠️ P1 — Dalles',detection:'Perception DD 13',disarm:'Outils de voleur DD 13',damage:'2d6',effect:'Dégâts perforants'},
-      P2:{type:'piege',title:'⚠️ P2 — Chaîne',detection:'Perception DD 14',disarm:'Outils de voleur DD 14',damage:'2d6',effect:'Dégâts contondants + À terre'},
-      P3:{type:'piege',title:'⚠️ P3 — Mur écrasant',detection:'Perception DD 15',disarm:'Outils de voleur DD 15',damage:'3d6',effect:'Dégâts contondants + repoussement'},
-      P4:{type:'piege',title:'⚠️ P4 — Rune de feu',detection:'Arcanes DD 15',disarm:'Arcanes DD 15 ou Outils de voleur DD 16',damage:'3d6',effect:'Dégâts de feu'},
-      P5:{type:'piege',title:'⚠️ P5 — Faux coffre',detection:'Perception DD 15',disarm:'Outils de voleur DD 14',damage:'2d6',effect:'Dégâts de poison + Empoisonné'},
-      P6:{type:'piege',title:'⚠️ P6 — Halo',detection:'Perception DD 16 ou Arcanes DD 16',disarm:'Arcanes DD 16 ou Outils de voleur DD 17',damage:'2d8',effect:'Dégâts de force + repoussement'},
-      S1:{type:'secret',title:'👁️ S1 — Chambre secrète abandonnée',difficulty:'Investigation DD 15',body:'Salle principalement narrative : vieux meubles, traces d’anciens occupants et documents abîmés. Aucune récompense financière importante. Les documents peuvent fournir du lore.'},
-      S2:{type:'secret',title:'👁️ S2 — Sanctuaire secret',difficulty:'Investigation DD 17',body:'Sanctuaire ancien. Il contient le coffre majeur C3 et un indice concernant le niveau 2.'}
-    }[id];
+    const data=getElementData(id);
     if(!data)return;
     const box=document.getElementById('donjonInfoContent');
     const modal=document.getElementById('donjonInfoModal');
     if(!box||!modal)return;
 
     let html='<h3>'+escapeHTML(data.title)+'</h3>';
+
     if(data.type==='coffre'){
-      html+='<p><b>Protection :</b> '+escapeHTML(data.difficulty)+'</p><h4>Contenu</h4><ul>'+data.loot.map(x=>'<li><b>'+escapeHTML(x[0])+'</b> × '+x[1]+'</li>').join('')+'</ul>';
+      html+='<p><b>Protection :</b> '+escapeHTML(data.difficulty)+'</p>';
+      if(data.trap)html+='<p><b>🪤 Piège :</b> '+escapeHTML(data.trap)+'</p>';
+      html+='<h4>💰 Récompense</h4><ul>'+data.loot.map(function(x){return '<li><b>'+escapeHTML(x[0])+'</b> × '+x[1]+'</li>';}).join('')+'</ul>';
       if(data.note)html+='<p class="small">'+escapeHTML(data.note)+'</p>';
-      html+='<div class="donjon-action"><h4>Donner les loots</h4><div class="donjon-target-grid">'+inventoryPlayers.map((n,i)=>'<label><input type="checkbox" name="donjonLootPlayer" value="'+i+'"> '+escapeHTML(n)+'</label>').join('')+'</div><button type="button" class="link" onclick="giveDungeonLoot(\''+id+'\')">🎁 Donner les loots</button><div id="donjonActionStatus" class="donjon-status"></div></div>';
+      html+='<div class="donjon-action"><h4>Donner les loots</h4><div class="donjon-target-grid">'+inventoryPlayers.map(function(n,i){return '<label><input type="checkbox" name="donjonLootPlayer" value="'+i+'"> '+escapeHTML(n)+'</label>';}).join('')+'</div><button type="button" class="link" onclick="giveDungeonLoot(\''+id+'\')">🎁 Donner les loots</button><div id="donjonActionStatus" class="donjon-status"></div></div>';
     }else if(data.type==='piege'){
-      html+='<p><b>Détection :</b> '+escapeHTML(data.detection)+'</p><p><b>Désamorçage :</b> '+escapeHTML(data.disarm)+'</p><p><b>Dégâts :</b> <strong>'+escapeHTML(data.damage)+'</strong> '+escapeHTML(data.effect)+'</p><div class="donjon-action"><h4>Joueurs touchés</h4><div class="donjon-target-grid">'+combatPlayerNames.map((n,i)=>'<label><input type="checkbox" name="donjonTrapPlayer" value="'+i+'"> '+escapeHTML(n)+'</label>').join('')+'</div><button type="button" class="link danger" onclick="applyDungeonTrap(\''+id+'\')">💥 Infliger les dégâts</button><div id="donjonActionStatus" class="donjon-status"></div></div>';
+      html+='<p><b>Détection :</b> '+escapeHTML(data.detection)+'</p>';
+      if(data.understand)html+='<p><b>Comprendre :</b> '+escapeHTML(data.understand)+'</p>';
+      if(data.disarm&&data.disarm!=='—')html+='<p><b>Désamorçage :</b> '+escapeHTML(data.disarm)+'</p>';
+      html+='<p><b>Dégâts :</b> <strong>'+escapeHTML(data.damage)+'</strong></p><p><b>Effet :</b> '+escapeHTML(data.effect)+'</p>';
+      html+='<div class="donjon-action"><h4>Joueurs touchés</h4><div class="donjon-target-grid">'+combatPlayerNames.map(function(n,i){return '<label><input type="checkbox" name="donjonTrapPlayer" value="'+i+'"> '+escapeHTML(n)+'</label>';}).join('')+'</div><button type="button" class="link danger" onclick="applyDungeonTrap(\''+id+'\')">💥 Infliger les dégâts</button><div id="donjonActionStatus" class="donjon-status"></div></div>';
+    }else if(data.type==='halo'){
+      html+='<p><b>Étude :</b> '+escapeHTML(data.difficulty)+'</p><p>'+escapeHTML(data.body)+'</p><p><b>Réaction :</b> '+escapeHTML(data.effect)+'</p>';
+      html+='<div class="donjon-action"><h4>Joueurs touchés</h4><div class="donjon-target-grid">'+combatPlayerNames.map(function(n,i){return '<label><input type="checkbox" name="donjonTrapPlayer" value="'+i+'"> '+escapeHTML(n)+'</label>';}).join('')+'</div><button type="button" class="link danger" onclick="applyDungeonTrap(\'HALO\')">💥 Déclencher la réaction</button><div id="donjonActionStatus" class="donjon-status"></div></div>';
     }else{
       html+='<p><b>Découverte :</b> '+escapeHTML(data.difficulty)+'</p><p>'+escapeHTML(data.body||'')+'</p>';
+      currentState().foundSecrets[id]=true;
+      saveDungeon();
     }
+
     box.innerHTML=html;
     modal.classList.remove('hidden');
   };
@@ -1885,7 +1982,7 @@ function openCombatKaelenShade(){
   };
 
   function rollDungeonDice(expr){
-    const m=String(expr).trim().match(/^(\d+)d(\d+)$/i);
+    const m=String(expr||'').trim().match(/^(\d+)d(\d+)$/i);
     if(!m)return 0;
     let total=0;
     for(let i=0;i<Number(m[1]);i++)total+=Math.floor(Math.random()*Number(m[2]))+1;
@@ -1895,49 +1992,82 @@ function openCombatKaelenShade(){
   window.applyDungeonTrap=function(id){
     const checks=[...document.querySelectorAll('input[name="donjonTrapPlayer"]:checked')];
     if(!checks.length){alert('Sélectionne au moins un joueur.');return;}
-    const data={P1:['2d6','perforants'],P2:['2d6','contondants + À terre'],P3:['3d6','contendants + repoussement'],P4:['3d6','feu'],P5:['2d6','poison + Empoisonné'],P6:['2d8','force + repoussement']}[id];
+    const level=currentLevel();
+    const trapMap={
+      1:{
+        P1:['2d6','perforants + moitié sur réussite'],
+        P2:['2d6','contendants + À terre'],
+        P3:['3d6','contendants + repoussement'],
+        P4:['3d6','feu'],
+        P5:['2d6','poison + Empoisonné'],
+        P6:['2d8','force + repoussement']
+      },
+      2:{
+        P1:['3d6','perforants'],
+        P2:['2d8','contendants + À terre'],
+        P3:['2d8','force + Entravé'],
+        P4:['3d8','froid + vitesse réduite'],
+        P5:['3d6','contendants + déplacement 3 m'],
+        P6:['4d6','foudre'],
+        HALO:['2d8','force + repoussement 3 m']
+      }
+    };
+    const data=trapMap[level]&&trapMap[level][id];
     if(!data)return;
     const results=[];
-    checks.forEach(ch=>{
-      const i=Number(ch.value),dmg=rollDungeonDice(data[0]);
+    checks.forEach(function(ch){
+      const i=Number(ch.value);
+      const dmg=rollDungeonDice(data[0]);
       const r=applyCombatPlayerDamage(i,dmg);
-      results.push(combatPlayers[i].name+' : '+dmg+' dégâts (🛡️ '+r.tempLost+' temp. / ❤️ '+r.hpLost+' PV)');
+      results.push(combatPlayers[i].name+' : -'+dmg+' dégâts (🛡️ '+r.tempLost+' temp. / ❤️ '+r.hpLost+' PV)');
     });
     const st=document.getElementById('donjonActionStatus');
     if(st)st.textContent='💥 '+results.join(' · ');
     if(typeof saveCombatDamageState==='function')saveCombatDamageState();
-    if(typeof refreshOpenFichePV==='function' && currentOpenFicheId)refreshOpenFichePV(currentOpenFicheId);
+    if(typeof refreshOpenFichePV==='function'&&currentOpenFicheId)refreshOpenFichePV(currentOpenFicheId);
   };
 
   window.giveDungeonLoot=function(id){
-    if(dungeonState.opened[id]){alert('Ce coffre a déjà été distribué.');return;}
+    const s=currentState();
+    if(s.opened[id]){alert('Ce coffre a déjà été distribué à ce niveau.');return;}
     const checks=[...document.querySelectorAll('input[name="donjonLootPlayer"]:checked')];
     if(!checks.length){alert('Sélectionne au moins un joueur.');return;}
-    const data={C1:[['90 po',1],['Potion de soins',1],['Gemme — 25 po',1]],C2:[['150 po',1],['Potion de soins',2],['Gemme — 50 po',1]],C3:[['200 po',1],['Potion de soins supérieure',1],['Gemme — 100 po',1],['Objet magique mineur',1]]}[id];
+    const lootMap={
+      1:{
+        C1:[['90 po',1],['Potion de soins',1],['Gemme — 25 po',1]],
+        C2:[['150 po',1],['Potion de soins',2],['Gemme — 50 po',1]],
+        C3:[['200 po',1],['Potion de soins supérieure',1],['Gemme — 100 po',1],['Objet magique mineur',1]]
+      },
+      2:{
+        C1:[['125 po',1],['Potion de soins',1],['Gemme — 50 po',1]],
+        C2:[['225 po',1],['Potion de soins',2],['Gemme — 75 po',1]],
+        C3:[['300 po',1],['Potion de soins supérieure',1],['Gemme — 150 po',1],['Parchemin de sort niveau 2',1],['Objet magique mineur adapté au groupe',1]]
+      }
+    };
+    const data=lootMap[currentLevel()]&&lootMap[currentLevel()][id];
     if(!data)return;
-    const targetIndexes=checks.map(x=>Number(x.value));
-    targetIndexes.forEach(i=>{
-      data.forEach(([name,qty])=>{
+    const targetIndexes=checks.map(function(x){return Number(x.value);});
+    targetIndexes.forEach(function(i){
+      data.forEach(function(item){
+        const name=item[0],qty=item[1];
         if(/^\d+(?:[.,]\d+)?\s*po$/i.test(name)){
           playerInventories[i].po+=(Number(name.replace(',','.').match(/[\d.]+/)?.[0])||0)*qty;
         }else{
-          const existing=playerInventories[i].items.find(x=>x.name.toLowerCase()===name.toLowerCase());
+          const existing=playerInventories[i].items.find(function(x){return x.name.toLowerCase()===name.toLowerCase();});
           if(existing)existing.qty+=qty;
-          else playerInventories[i].items.push({name,qty});
+          else playerInventories[i].items.push({name:name,qty:qty});
         }
       });
     });
     if(typeof saveInventories==='function')saveInventories();
     if(typeof renderInventories==='function')renderInventories();
     const st=document.getElementById('donjonActionStatus');
-    if(st)st.textContent='🎁 Loot distribué à '+targetIndexes.map(i=>playerInventories[i].name).join(', ');
-    dungeonState.opened[id]=true;
+    if(st)st.textContent='🎁 Loot distribué à '+targetIndexes.map(function(i){return playerInventories[i].name;}).join(', ');
+    s.opened[id]=true;
     saveDungeon();
   };
 
-  function bootDungeon(){
-    initDungeonMap();
-  }
+  function bootDungeon(){initDungeonMap();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootDungeon,{once:true});
   else bootDungeon();
 })();
