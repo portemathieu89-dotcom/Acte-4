@@ -6,11 +6,10 @@
 import OBR, { buildLabel } from "https://cdn.jsdelivr.net/npm/@owlbear-rodeo/sdk@3.1.0/+esm";
 
 const LOCAL_API="http://127.0.0.1:5173/hp";
-const OBR_CHANNEL="the-last-heart/hp";
 const META_KEY="the-last-heart/pv-cast";
 let lastUpdatedAt=0;
 let latestPlayers=null;
-let isCastReceiver=false;
+let labelId=null;
 
 function labelText(players){
   return players.slice(0,5).map(function(p){
@@ -34,22 +33,28 @@ async function getTopPosition(){
   };
 }
 
-async function renderCastLabel(players){
-  if(!isCastReceiver||!Array.isArray(players)||!players.length)return;
-  const text=labelText(players);
-  const position=await getTopPosition();
-
-  const items=await OBR.scene.local.getItems(function(item){
+async function findLabel(){
+  const items=await OBR.scene.items.getItems(function(item){
     return item.metadata&&item.metadata[META_KEY]&&item.metadata[META_KEY].type==="hp-label";
   });
+  return items.length?items[0]:null;
+}
 
-  if(items.length){
-    await OBR.scene.local.updateItems(items, function(current){
-      for(const item of current){
-        item.text.plainText=text;
-        item.position=position;
+async function renderSharedLabel(players){
+  if(!Array.isArray(players)||!players.length)return;
+
+  const text=labelText(players);
+  const position=await getTopPosition();
+  let item=await findLabel();
+
+  if(item){
+    labelId=item.id;
+    await OBR.scene.items.updateItems([item.id],function(items){
+      for(const current of items){
+        current.text.plainText=text;
+        current.position=position;
       }
-    }, true);
+    });
     return;
   }
 
@@ -64,11 +69,12 @@ async function renderCastLabel(players){
     .cornerRadius(10)
     .disableHit(true)
     .locked(true)
-    .position(position)
     .metadata({[META_KEY]:{type:"hp-label"}})
+    .position(position)
     .build();
 
-  await OBR.scene.local.addItems([label]);
+  const added=await OBR.scene.items.addItems([label]);
+  if(added&&added.length)labelId=added[0].id;
 }
 
 async function acceptPayload(payload){
@@ -77,16 +83,9 @@ async function acceptPayload(payload){
   if(updatedAt&&updatedAt<=lastUpdatedAt)return;
   if(updatedAt)lastUpdatedAt=updatedAt;
   latestPlayers=payload.players;
-
-  if(isCastReceiver){
-    try{await renderCastLabel(latestPlayers)}catch(e){
-      console.error("The Last Heart PV Cast label:",e);
-    }
+  try{await renderSharedLabel(latestPlayers)}catch(e){
+    console.error("The Last Heart PV Cast label:",e);
   }
-
-  try{
-    await OBR.broadcast.sendMessage(OBR_CHANNEL,payload,{destination:"ALL"});
-  }catch(e){}
 }
 
 async function pollLocalServer(){
@@ -100,24 +99,21 @@ async function pollLocalServer(){
 
 OBR.onReady(async()=>{
   try{
-    const name=await OBR.player.getName();
-    isCastReceiver=String(name||"").trim().toLowerCase()==="cast receiver";
-
-    OBR.broadcast.onMessage(OBR_CHANNEL,event=>{
-      if(event.data&&Array.isArray(event.data.players)){
-        latestPlayers=event.data.players;
-        if(isCastReceiver)renderCastLabel(latestPlayers).catch(()=>{});
-      }
-    });
-
     await pollLocalServer();
     setInterval(pollLocalServer,250);
 
-    if(isCastReceiver){
-      setInterval(()=>{
-        if(latestPlayers)renderCastLabel(latestPlayers).catch(()=>{});
-      },1000);
-    }
+    OBR.scene.items.onChange(function(items){
+      const own=items.find(function(item){
+        return item.metadata&&item.metadata[META_KEY]&&item.metadata[META_KEY].type==="hp-label";
+      });
+      if(own)labelId=own.id;
+    });
+
+    setInterval(async function(){
+      if(latestPlayers){
+        try{await renderSharedLabel(latestPlayers)}catch(e){}
+      }
+    },1000);
   }catch(e){
     console.error("The Last Heart PV Cast:",e);
   }
