@@ -1051,14 +1051,21 @@ function setCampaignSaveStatus(message,isError=false){
 function exportCampaignSave(){
  const save={
    format:'The Last Heart — Sauvegarde de campagne',
-   version:1,
+   version:2,
    acte:'base',
    savedAt:new Date().toISOString(),
    players:playerInventories.map(p=>({
      name:p.name,
      po:Number(p.po)||0,
      items:Array.isArray(p.items)?p.items.map(it=>({name:String(it.name||''),qty:Math.max(0,Math.floor(Number(it.qty)||0))})).filter(it=>it.name&&it.qty>0):[]
-   }))
+   })),
+   combatPlayers:Array.isArray(combatPlayers)?combatPlayers.map(p=>({
+     name:String(p?.name||''),
+     current:p?.current===''?'':Math.max(0,Math.floor(Number(p?.current)||0)),
+     max:p?.max===''?'':Math.max(0,Math.floor(Number(p?.max)||0)),
+     ca:p?.ca===''?'':Math.max(0,Math.floor(Number(p?.ca)||0)),
+     temp:Math.max(0,Math.floor(Number(p?.temp)||0))
+   })): []
  };
  const blob=new Blob([JSON.stringify(save,null,2)],{type:'application/json;charset=utf-8'});
  const url=URL.createObjectURL(blob);
@@ -1069,7 +1076,7 @@ function exportCampaignSave(){
  a.click();
  a.remove();
  URL.revokeObjectURL(url);
- setCampaignSaveStatus('✅ Sauvegarde créée : The_Last_Heart_Sauvegarde.json');
+ setCampaignSaveStatus('✅ Sauvegarde créée : inventaires, PO, PV, PV max, PV temporaires et CA.');
 }
 function importCampaignSave(event){
  const file=event.target.files&&event.target.files[0];
@@ -1095,11 +1102,29 @@ function importCampaignSave(event){
        };
      });
      saveInventories();
+     if(Array.isArray(data.combatPlayers) && typeof combatPlayers!=='undefined'){
+       const combatByName=new Map(data.combatPlayers.map(p=>[String(p?.name||''),p]));
+       combatPlayers=combatPlayerNames.map(name=>{
+         const source=combatByName.get(name)||{};
+         return {
+           name,
+           current:source.current===''?'':Math.max(0,Math.floor(Number(source.current)||0)),
+           max:source.max===''?'':Math.max(0,Math.floor(Number(source.max)||0)),
+           ca:source.ca===''?'':Math.max(0,Math.floor(Number(source.ca)||0)),
+           temp:Math.max(0,Math.floor(Number(source.temp)||0))
+         };
+       });
+       saveCombatPlayers();
+     }
      renderInventories();
+     if(typeof renderGestionPV==='function')renderGestionPV();
+     if(typeof refreshOpenFichePV==='function'&&typeof currentOpenFicheId!=='undefined'&&currentOpenFicheId)refreshOpenFichePV(currentOpenFicheId);
      if(typeof renderAlchemyShop==='function')renderAlchemyShop();
      if(typeof renderBonCapShop==='function')renderBonCapShop();
      if(typeof renderPortShop==='function')renderPortShop();
-     setCampaignSaveStatus('✅ Sauvegarde chargée avec succès.');
+     setCampaignSaveStatus(Array.isArray(data.combatPlayers)
+       ? '✅ Sauvegarde chargée : inventaires, PO, PV, PV max, PV temporaires et CA.'
+       : '✅ Sauvegarde chargée : inventaires et PO. Les PV/CA actuels n’étaient pas présents dans ce fichier.');
    }catch(err){
      console.error(err);
      setCampaignSaveStatus('❌ Impossible de charger cette sauvegarde.',true);
@@ -1110,6 +1135,7 @@ function importCampaignSave(event){
  reader.onerror=()=>{setCampaignSaveStatus('❌ Impossible de lire le fichier.',true);input.value='';};
  reader.readAsText(file);
 }
+
 function renderInventories(){
  const grid=document.getElementById('playerInventoryGrid'); if(!grid)return;
  grid.innerHTML=playerInventories.map((p,i)=>`<div class="player-inventory-card">
