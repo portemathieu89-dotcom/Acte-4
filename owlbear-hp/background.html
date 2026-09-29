@@ -5,21 +5,12 @@
 <script type="module">
 import OBR, { buildLabel } from "https://cdn.jsdelivr.net/npm/@owlbear-rodeo/sdk@3.1.0/+esm";
 
-const APP_CHANNEL="theLastHeartOwlbearHP";
+const LOCAL_API="http://127.0.0.1:5173/hp";
 const OBR_CHANNEL="the-last-heart/hp";
-const STORAGE_KEY="theLastHeartOwlbearHP";
-const LABEL_ID="the-last-heart/pv-cast-label";
+const META_KEY="the-last-heart/pv-cast";
 let lastUpdatedAt=0;
 let latestPlayers=null;
 let isCastReceiver=false;
-let labelExists=false;
-
-function readPayload(){
-  try{
-    const payload=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
-    return payload&&Array.isArray(payload.players)?payload:null;
-  }catch(e){return null}
-}
 
 function labelText(players){
   return players.slice(0,5).map(function(p){
@@ -31,10 +22,9 @@ function labelText(players){
 }
 
 async function getTopPosition(){
-  const [position,scale,width,height]=await Promise.all([
+  const [position,scale,height]=await Promise.all([
     OBR.viewport.getPosition(),
     OBR.viewport.getScale(),
-    OBR.viewport.getWidth(),
     OBR.viewport.getHeight()
   ]);
   const safeScale=Math.max(0.01,Number(scale)||1);
@@ -46,55 +36,66 @@ async function getTopPosition(){
 
 async function renderCastLabel(players){
   if(!isCastReceiver||!Array.isArray(players)||!players.length)return;
-  latestPlayers=players;
-  const position=await getTopPosition();
   const text=labelText(players);
+  const position=await getTopPosition();
 
-  try{
-    if(!labelExists){
-      const label=buildLabel()
-        .plainText(text)
-        .fontFamily("Arial")
-        .fontSize(24)
-        .fontWeight(700)
-        .padding(10)
-        .backgroundColor("#0c0907")
-        .backgroundOpacity(0.88)
-        .cornerRadius(10)
-        .disableHit(true)
-        .locked(true)
-        .position(position)
-        .build();
-      label.metadata["the-last-heart/pv-cast"]={type:"hp-label"};
-      await OBR.scene.local.addItems([label]);
-      labelExists=true;
-    }else{
-      await OBR.scene.local.updateItems(
-        item=>item.metadata&&item.metadata["the-last-heart/pv-cast"]&&item.metadata["the-last-heart/pv-cast"].type==="hp-label",
-        items=>{
-          for(const item of items){
-            item.text.plainText=text;
-            item.position=position;
-          }
-        }
-      );
-    }
-  }catch(e){
-    console.error("The Last Heart PV Cast label:",e);
+  const items=await OBR.scene.local.getItems(function(item){
+    return item.metadata&&item.metadata[META_KEY]&&item.metadata[META_KEY].type==="hp-label";
+  });
+
+  if(items.length){
+    await OBR.scene.local.updateItems(items, function(current){
+      for(const item of current){
+        item.text.plainText=text;
+        item.position=position;
+      }
+    }, true);
+    return;
   }
+
+  const label=buildLabel()
+    .plainText(text)
+    .fontFamily("Arial")
+    .fontSize(24)
+    .fontWeight(700)
+    .padding(10)
+    .backgroundColor("#0c0907")
+    .backgroundOpacity(0.88)
+    .cornerRadius(10)
+    .disableHit(true)
+    .locked(true)
+    .position(position)
+    .metadata({[META_KEY]:{type:"hp-label"}})
+    .build();
+
+  await OBR.scene.local.addItems([label]);
 }
 
-async function forwardToRoom(payload){
+async function acceptPayload(payload){
   if(!payload||!Array.isArray(payload.players))return;
   const updatedAt=Number(payload.updatedAt)||0;
   if(updatedAt&&updatedAt<=lastUpdatedAt)return;
   if(updatedAt)lastUpdatedAt=updatedAt;
   latestPlayers=payload.players;
+
+  if(isCastReceiver){
+    try{await renderCastLabel(latestPlayers)}catch(e){
+      console.error("The Last Heart PV Cast label:",e);
+    }
+  }
+
   try{
     await OBR.broadcast.sendMessage(OBR_CHANNEL,payload,{destination:"ALL"});
-  }catch(e){
-    console.error("The Last Heart PV Cast broadcast:",e);
-  }
+  }catch(e){}
+}
+
+async function pollLocalServer(){
+  try{
+    const response=await fetch(LOCAL_API,{cache:"no-store"});
+    if(!response.ok)return;
+    const payload=await response.json();
+    await acceptPayload(payload);
+  }catch(e){}
 }
 
 OBR.onReady(async()=>{
@@ -102,32 +103,19 @@ OBR.onReady(async()=>{
     const name=await OBR.player.getName();
     isCastReceiver=String(name||"").trim().toLowerCase()==="cast receiver";
 
-    if("BroadcastChannel" in window){
-      const channel=new BroadcastChannel(APP_CHANNEL);
-      channel.onmessage=event=>{forwardToRoom(event.data)};
-    }
-
-    window.addEventListener("storage",event=>{
-      if(event.key!==STORAGE_KEY||!event.newValue)return;
-      try{forwardToRoom(JSON.parse(event.newValue))}catch(e){}
-    });
-
-    const initial=readPayload();
-    if(initial)await forwardToRoom(initial);
-
     OBR.broadcast.onMessage(OBR_CHANNEL,event=>{
-      const payload=event.data;
-      if(payload&&Array.isArray(payload.players)){
-        latestPlayers=payload.players;
-        if(isCastReceiver)renderCastLabel(payload.players);
+      if(event.data&&Array.isArray(event.data.players)){
+        latestPlayers=event.data.players;
+        if(isCastReceiver)renderCastLabel(latestPlayers).catch(()=>{});
       }
     });
 
-    if(isCastReceiver&&latestPlayers)await renderCastLabel(latestPlayers);
+    await pollLocalServer();
+    setInterval(pollLocalServer,250);
 
     if(isCastReceiver){
       setInterval(()=>{
-        if(latestPlayers)renderCastLabel(latestPlayers);
+        if(latestPlayers)renderCastLabel(latestPlayers).catch(()=>{});
       },1000);
     }
   }catch(e){
