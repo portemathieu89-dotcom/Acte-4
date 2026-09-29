@@ -31,7 +31,8 @@ while ($listener.IsListening) {
 
         $response.Headers["Access-Control-Allow-Origin"] = "*"
         $response.Headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
-        $response.Headers["Access-Control-Allow-Headers"] = "Content-Type"
+        $response.Headers["Access-Control-Allow-Headers"] = "Content-Type, Access-Control-Request-Private-Network"
+        $response.Headers["Access-Control-Allow-Private-Network"] = "true"
         $response.Headers["Cache-Control"] = "no-store"
 
         if ($request.HttpMethod -eq "OPTIONS") {
