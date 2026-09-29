@@ -21,16 +21,16 @@ function labelText(players){
 }
 
 async function getTopPosition(){
-  const [position,scale,height]=await Promise.all([
-    OBR.viewport.getPosition(),
-    OBR.viewport.getScale(),
+  const [width,height]=await Promise.all([
+    OBR.viewport.getWidth(),
     OBR.viewport.getHeight()
   ]);
-  const safeScale=Math.max(0.01,Number(scale)||1);
-  return {
-    x:Number(position.x)||0,
-    y:(Number(position.y)||0)-Math.max(120,(Number(height)||720)*0.5/safeScale)+55/safeScale
-  };
+  const safeWidth=Math.max(1,Number(width)||1280);
+  const safeHeight=Math.max(1,Number(height)||720);
+  return OBR.viewport.inverseTransformPoint({
+    x:safeWidth/2,
+    y:Math.min(55,safeHeight-40)
+  });
 }
 
 async function findLabel(){
