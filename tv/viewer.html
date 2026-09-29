@@ -66,7 +66,8 @@ function renderTVHP(players){
   box.innerHTML=(Array.isArray(players)?players:[]).map(p=>{
     const cur=p.current===null||p.current===undefined?'—':p.current;
     const max=p.max===null||p.max===undefined?'':(' / '+p.max);
-    return '<div class="tv-hp-row"><span class="tv-hp-name">'+escapeTV(p.name||'Joueur')+'</span><span class="tv-hp-value">❤️ '+cur+max+'</span></div>';
+    const temp=Math.max(0,Number(p.temp)||0);
+    return '<div class="tv-hp-row"><span class="tv-hp-name">'+escapeTV(p.name||'Joueur')+'</span><span class="tv-hp-value">❤️ '+cur+max+' · 🛡️ '+temp+'</span></div>';
   }).join('');
 }
 function escapeTV(v){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
