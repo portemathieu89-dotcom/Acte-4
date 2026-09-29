@@ -202,6 +202,7 @@ h2{font-family:Georgia,serif;color:var(--gold2);font-size:32px;text-shadow:0 2px
 <button onclick="show('competences',this)">🎲 Compétences</button>
 <button onclick="show('musiquesCombat',this)">🎵 Musiques de combat</button>
 <button onclick="show('musiquesBoss',this)">👹 Musiques de boss</button>
+<button onclick="show('gestionPV',this)">❤️ Gestion des PV</button>
 <button onclick="show('minuteurDegats',this)">⏱️ Minuteur de dégâts</button>
 </div></aside>
 <main class="main">
@@ -330,6 +331,12 @@ h2{font-family:Georgia,serif;color:var(--gold2);font-size:32px;text-shadow:0 2px
 </section>
 
 
+
+<section id="gestionPV" class="hidden">
+<h2>❤️ Gestion des PV des joueurs</h2>
+<p class="small-note">Outil MJ central pour modifier les PV. Les dégâts utilisent les PV temporaires avant les PV normaux, comme dans le Combat. Les modifications sont sauvegardées automatiquement et l’affichage TV est actualisé.</p>
+<div id="gestionPVPlayers" class="grid"></div>
+</section>
 
 <section id="minuteurDegats" class="hidden">
 <h2>⏱️ Minuteur de dégâts</h2>
@@ -617,7 +624,7 @@ function openTVPage(page,title){
   tvWindow.focus();
 }
 
-function show(id,btn){document.querySelectorAll('main section').forEach(x=>x.classList.add('hidden'));const target=document.getElementById(id);if(target)target.classList.remove('hidden');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));if(btn)btn.classList.add('active');document.querySelectorAll('.subnav button').forEach(x=>x.classList.remove('subactive'));if(id==='inventaire'&&typeof renderInventories==='function')renderInventories();if(id==='boutiqueAlchimie'&&typeof renderAlchemyShop==='function')renderAlchemyShop();if(id==='boutiqueBonCap'&&typeof renderBonCapShop==='function')renderBonCapShop();if(id==='boutiquePort'&&typeof renderPortShop==='function')renderPortShop();window.scrollTo(0,0)}
+function show(id,btn){document.querySelectorAll('main section').forEach(x=>x.classList.add('hidden'));const target=document.getElementById(id);if(target)target.classList.remove('hidden');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));if(btn)btn.classList.add('active');document.querySelectorAll('.subnav button').forEach(x=>x.classList.remove('subactive'));if(id==='inventaire'&&typeof renderInventories==='function')renderInventories();if(id==='gestionPV'&&typeof renderGestionPV==='function')renderGestionPV();if(id==='boutiqueAlchimie'&&typeof renderAlchemyShop==='function')renderAlchemyShop();if(id==='boutiqueBonCap'&&typeof renderBonCapShop==='function')renderBonCapShop();if(id==='boutiquePort'&&typeof renderPortShop==='function')renderPortShop();window.scrollTo(0,0)}
 function toggleAct(id,btn){const nav=document.getElementById(id+'Nav');if(!nav)return;const isOpen=nav.classList.toggle('open');btn.classList.toggle('collapsed',!isOpen);show(id,btn)}
 function toggleMenuGroup(navId,btn){const nav=document.getElementById(navId);if(!nav)return;const isOpen=nav.classList.toggle('open');btn.classList.toggle('collapsed',!isOpen)}
 function showActPart(sectionId,btn,navId,targetId){document.querySelectorAll('main section').forEach(x=>x.classList.add('hidden'));const target=document.getElementById(sectionId);if(target)target.classList.remove('hidden');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.subnav button').forEach(x=>x.classList.remove('subactive'));if(btn)btn.classList.add('subactive');const anchor=document.getElementById(targetId);if(anchor){anchor.classList.remove('hidden');window.scrollTo({top:Math.max(0,anchor.getBoundingClientRect().top+window.scrollY-25),behavior:'smooth'})}}
@@ -1368,18 +1375,71 @@ function getCombatTarget(id){
  const index=Number(combatTargets[id]);
  return Number.isInteger(index)&&combatPlayers[index]?index:null;
 }
-function applyCombatPlayerDamage(index,damage){
- const p=combatPlayers[index];if(!p)return {tempLost:0,hpLost:0};
+function applyPlayerDamage(index,damage){
+ const p=combatPlayers[index];if(!p)return {tempLost:0,hpLost:0,total:0};
  let remaining=Math.max(0,Math.floor(Number(damage)||0));
  const tempBefore=Math.max(0,Math.floor(Number(p.temp)||0));
  const tempLost=Math.min(tempBefore,remaining);
  p.temp=tempBefore-tempLost;remaining-=tempLost;
- const hpBefore=Math.max(0,Number(p.current)||0);
- const hpLost=Math.min(hpBefore,remaining);
- p.current=p.current===''?'':hpBefore-hpLost;
- saveCombatPlayers();refreshOpenFichePV(currentOpenFicheId);
- return {tempLost,hpLost};
+ const hpBefore=p.current===''?null:Math.max(0,Number(p.current)||0);
+ const hpLost=hpBefore===null?0:Math.min(hpBefore,remaining);
+ if(hpBefore!==null)p.current=hpBefore-hpLost;
+ saveCombatPlayers();
+ if(typeof refreshOpenFichePV==='function'&&currentOpenFicheId)refreshOpenFichePV(currentOpenFicheId);
+ if(typeof sendTVHP==='function')sendTVHP('flash',0);
+ return {tempLost,hpLost,total:tempLost+hpLost};
 }
+function applyCombatPlayerDamage(index,damage){
+ return applyPlayerDamage(index,damage);
+}
+function healPlayer(index,amount,options){
+ const p=combatPlayers[index];if(!p)return {healed:0};
+ const max=p.max===''?null:Math.max(0,Number(p.max)||0);
+ const before=p.current===''?0:Math.max(0,Number(p.current)||0);
+ const requested=Math.max(0,Math.floor(Number(amount)||0));
+ const healed=max===null?requested:Math.min(requested,Math.max(0,max-before));
+ p.current=max===null?before+healed:Math.min(max,before+healed);
+ saveCombatPlayers();
+ if(options&&options.registerCombatEvent&&typeof registerCombatEvent==='function'&&currentOpenFicheId)registerCombatEvent(currentOpenFicheId,'heal',healed);
+ if(typeof refreshOpenFichePV==='function'&&currentOpenFicheId)refreshOpenFichePV(currentOpenFicheId);
+ if(typeof sendTVHP==='function')sendTVHP('flash',0);
+ return {healed};
+}
+function renderGestionPV(){
+ const wrap=document.getElementById('gestionPVPlayers');if(!wrap)return;
+ wrap.innerHTML=combatPlayers.slice(0,4).map(function(p,i){
+   const cur=p.current===''?'—':Math.max(0,Number(p.current)||0);
+   const max=p.max===''?'—':Math.max(0,Number(p.max)||0);
+   const temp=Math.max(0,Math.floor(Number(p.temp)||0));
+   return '<div class="card combat-player-card"><h3>👤 '+escapeHTML(p.name)+'</h3><p style="font-size:24px;margin:8px 0">❤️ <b>'+cur+' / '+max+'</b></p><p>🛡️ PV temporaires : <b>'+temp+'</b></p><div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center"><input id="gestionPVAmount_'+i+'" type="number" min="0" step="1" value="1" style="width:110px;background:#17110d;color:#eadfc9;border:1px solid #6a4a21;border-radius:6px;padding:9px"><button class="link danger" onclick="gestionPVDamage('+i+')">💥 Dégâts</button><button class="link" onclick="gestionPVHeal('+i+')">❤️ Soigner</button><button class="link" onclick="gestionPVTemp('+i+')">🛡️ PV temp.</button></div><div id="gestionPVStatus_'+i+'" class="small-note" style="margin-top:8px"></div></div>';
+ }).join('');
+}
+function gestionPVAmount(i){return Math.max(0,Math.floor(Number(document.getElementById('gestionPVAmount_'+i)?.value)||0))}
+function gestionPVStatus(i,textValue){const el=document.getElementById('gestionPVStatus_'+i);if(el)el.textContent=textValue}
+function gestionPVDamage(i){
+ const amount=gestionPVAmount(i);if(!amount)return;
+ const r=applyPlayerDamage(i,amount);
+ if(typeof saveCombatDamageState==='function'&&currentOpenFicheId){combatDamageState[currentOpenFicheId+'_'+i]={actual:r.total,source:'Gestion des PV',roll:amount};saveCombatDamageState();}
+ gestionPVStatus(i,'💥 -'+r.total+' PV — 🛡️ -'+r.tempLost+' temp. / ❤️ -'+r.hpLost+' PV');
+ renderGestionPV();
+}
+function gestionPVHeal(i){
+ const amount=gestionPVAmount(i);if(!amount)return;
+ const r=healPlayer(i,amount,{registerCombatEvent:!!currentOpenFicheId});
+ gestionPVStatus(i,'❤️ +'+r.healed+' PV');
+ renderGestionPV();
+}
+function gestionPVTemp(i){
+ const amount=gestionPVAmount(i);if(!amount)return;
+ const p=combatPlayers[i];if(!p)return;
+ p.temp=Math.max(0,Math.floor(Number(p.temp)||0)+amount);
+ saveCombatPlayers();
+ if(typeof refreshOpenFichePV==='function'&&currentOpenFicheId)refreshOpenFichePV(currentOpenFicheId);
+ if(typeof sendTVHP==='function')sendTVHP('flash',0);
+ gestionPVStatus(i,'🛡️ +'+amount+' PV temporaires');
+ renderGestionPV();
+}
+
 function renderCombatTargetBanner(id){
  const index=getCombatTarget(id);
  if(index===null)return '<div class="combat-target-banner">🎯 <strong>Aucune cible sélectionnée.</strong> Clique sur la fiche d’un joueur avant de lancer une attaque.</div>';
@@ -1762,7 +1822,7 @@ initCombatPV();
  const damageBellAudio=new Audio('sons/sons/cloche_necropole_2_5s.mp3');damageBellAudio.preload='auto';function beep(){try{damageBellAudio.currentTime=0;const p=damageBellAudio.play();if(p&&p.catch)p.catch(()=>{})}catch(e){}}
  function tvPlayers(){return combatPlayers.map(p=>({name:p.name,current:p.current===''?null:Math.max(0,Math.floor(Number(p.current)||0)),max:p.max===''?null:Math.max(0,Math.floor(Number(p.max)||0))}))}
  function sendTVHP(mode,duration=0){sendTVMessage({type:'theLastHeartDamageHP',mode,players:tvPlayers(),duration})}
- function applyHazardDamage(roll){const results=[];combatPlayers.forEach((p,i)=>{const beforeTemp=Math.max(0,Math.floor(Number(p.temp)||0)),beforeHp=p.current===''?null:Math.max(0,Math.floor(Number(p.current)||0));let remaining=Math.max(0,roll.total),tempLost=Math.min(beforeTemp,remaining);p.temp=beforeTemp-tempLost;remaining-=tempLost;let hpLost=0;if(beforeHp!==null){hpLost=Math.min(beforeHp,remaining);p.current=beforeHp-hpLost}const actual=tempLost+hpLost;combatDamageState[currentOpenFicheId+'_'+i]={actual,source:'Minuteur MJ',roll:roll.total};results.push(p.name+': -'+actual+(tempLost?' ('+tempLost+' PV temp.)':''))});saveCombatPlayers();saveCombatDamageState();if(currentOpenFicheId)refreshOpenFichePV(currentOpenFicheId);return results}
+ function applyHazardDamage(roll){const results=[];combatPlayers.forEach((p,i)=>{const r=applyPlayerDamage(i,roll.total);combatDamageState[currentOpenFicheId+'_'+i]={actual:r.total,source:'Minuteur MJ',roll:roll.total};results.push(p.name+': -'+r.total+(r.tempLost?' ('+r.tempLost+' PV temp.)':''))});saveCombatDamageState();return results}
  function damageTick(){const roll=rollDice(state.dice);if(!roll){state.active=false;save();render();sendTVHP('hide');alert('Jet de dégâts invalide. Utilise par exemple 1d6 ou 2d8+2.');return}const results=applyHazardDamage(roll);beep();const now=Date.now();state.lastTickAt=now;state.log.unshift(new Date(now).toLocaleTimeString()+' — '+roll.total+' dégâts ('+state.dice+') — '+results.join(' · '));state.log=state.log.slice(0,12);save();sendTVHP('flash',4000);render()}
  function catchUp(){if(!state.active||!state.lastTickAt)return;const now=Date.now(),interval=Math.max(100,state.intervalMs);while(now-state.lastTickAt>=interval){state.lastTickAt+=interval;const roll=rollDice(state.dice);if(!roll){state.active=false;sendTVHP('hide');break}const results=applyHazardDamage(roll);beep();state.log.unshift(new Date(state.lastTickAt).toLocaleTimeString()+' — '+roll.total+' dégâts ('+state.dice+') — '+results.join(' · '));state.log=state.log.slice(0,12);sendTVHP('flash',4000)}save()}
  function render(){const min=getEl('damageTimerMinutes'),dice=getEl('damageTimerDice'),clock=getEl('damageTimerClock'),status=getEl('damageTimerStatus'),last=getEl('damageTimerLast'),log=getEl('damageTimerLog');if(!min||!dice||!clock||!status||!last||!log)return;min.value=String(Math.max(0.1,state.intervalMs/60000));dice.value=state.dice;const elapsed=state.active&&state.startedAt?Date.now()-state.startedAt:state.elapsedMs||0;clock.textContent=formatTime(elapsed);status.textContent=state.active?'🟢 En cours — prochain dégât dans '+formatTime(Math.max(0,state.intervalMs-((Date.now()-state.lastTickAt)%state.intervalMs))):'⏸️ En pause';last.textContent=state.log.length?'💥 Dernier tick : '+state.log[0]:'Aucun dégât appliqué.';log.innerHTML=state.log.map(x=>'<div>'+escapeHTML(x)+'</div>').join('')}
@@ -2111,7 +2171,7 @@ function openCombatKaelenShade(){
     checks.forEach(function(ch){
       const i=Number(ch.value);
       const dmg=rollDungeonDice(data[0]);
-      const r=applyCombatPlayerDamage(i,dmg);
+      const r=applyPlayerDamage(i,dmg);
       results.push(combatPlayers[i].name+' : -'+dmg+' dégâts (🛡️ '+r.tempLost+' temp. / ❤️ '+r.hpLost+' PV)');
     });
     const st=document.getElementById('donjonActionStatus');
