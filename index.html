@@ -1285,6 +1285,7 @@ function sendCombatHPToOwlbear(){
  const payload={players,updatedAt:Date.now()};
  try{localStorage.setItem(owlbearHPStorageKey,JSON.stringify(payload))}catch(e){}
  try{if(owlbearHPChannel)owlbearHPChannel.postMessage(payload)}catch(e){}
+ try{fetch('http://127.0.0.1:5173/hp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).catch(()=>{})}catch(e){}
 }
 function saveCombatPlayers(){localStorage.setItem(combatPlayersKey,JSON.stringify(combatPlayers));sendCombatHPToOwlbear()}
 sendCombatHPToOwlbear();
