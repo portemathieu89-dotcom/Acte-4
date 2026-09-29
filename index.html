@@ -1386,7 +1386,6 @@ function applyPlayerDamage(index,damage){
  if(hpBefore!==null)p.current=hpBefore-hpLost;
  saveCombatPlayers();
  if(typeof refreshOpenFichePV==='function'&&currentOpenFicheId)refreshOpenFichePV(currentOpenFicheId);
- if(typeof sendTVHP==='function')sendTVHP('flash',0);
  return {tempLost,hpLost,total:tempLost+hpLost};
 }
 function applyCombatPlayerDamage(index,damage){
@@ -1402,7 +1401,6 @@ function healPlayer(index,amount,options){
  saveCombatPlayers();
  if(options&&options.registerCombatEvent&&typeof registerCombatEvent==='function'&&currentOpenFicheId)registerCombatEvent(currentOpenFicheId,'heal',healed);
  if(typeof refreshOpenFichePV==='function'&&currentOpenFicheId)refreshOpenFichePV(currentOpenFicheId);
- if(typeof sendTVHP==='function')sendTVHP('flash',0);
  return {healed};
 }
 function renderGestionPV(){
@@ -1420,12 +1418,14 @@ function gestionPVDamage(i){
  const amount=gestionPVAmount(i);if(!amount)return;
  const r=applyPlayerDamage(i,amount);
  if(typeof saveCombatDamageState==='function'&&currentOpenFicheId){combatDamageState[currentOpenFicheId+'_'+i]={actual:r.total,source:'Gestion des PV',roll:amount};saveCombatDamageState();}
+ if(typeof sendTVHP==='function')sendTVHP('flash',4000);
  gestionPVStatus(i,'💥 -'+r.total+' PV — 🛡️ -'+r.tempLost+' temp. / ❤️ -'+r.hpLost+' PV');
  renderGestionPV();
 }
 function gestionPVHeal(i){
  const amount=gestionPVAmount(i);if(!amount)return;
  const r=healPlayer(i,amount,{registerCombatEvent:!!currentOpenFicheId});
+ if(typeof sendTVHP==='function')sendTVHP('flash',4000);
  gestionPVStatus(i,'❤️ +'+r.healed+' PV');
  renderGestionPV();
 }
