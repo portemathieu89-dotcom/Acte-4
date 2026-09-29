@@ -1406,38 +1406,16 @@ function healPlayer(index,amount,options){
 function renderGestionPV(){
  const wrap=document.getElementById('gestionPVPlayers');if(!wrap)return;
  wrap.innerHTML=combatPlayers.slice(0,4).map(function(p,i){
-   const cur=p.current===''?'—':Math.max(0,Number(p.current)||0);
-   const max=p.max===''?'—':Math.max(0,Number(p.max)||0);
+   const cur=p.current===''?'':Math.max(0,Number(p.current)||0);
+   const max=p.max===''?'':Math.max(0,Number(p.max)||0);
    const temp=Math.max(0,Math.floor(Number(p.temp)||0));
-   return '<div class="card combat-player-card"><h3>👤 '+escapeHTML(p.name)+'</h3><p style="font-size:24px;margin:8px 0">❤️ <b>'+cur+' / '+max+'</b></p><p>🛡️ PV temporaires : <b>'+temp+'</b></p><div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center"><input id="gestionPVAmount_'+i+'" type="number" min="0" step="1" value="1" style="width:110px;background:#17110d;color:#eadfc9;border:1px solid #6a4a21;border-radius:6px;padding:9px"><button class="link danger" onclick="gestionPVDamage('+i+')">💥 Dégâts</button><button class="link" onclick="gestionPVHeal('+i+')">❤️ Soigner</button><button class="link" onclick="gestionPVTemp('+i+')">🛡️ PV temp.</button></div><div id="gestionPVStatus_'+i+'" class="small-note" style="margin-top:8px"></div></div>';
+   return '<div class="card combat-player-card"><h3>👤 '+escapeHTML(p.name)+'</h3><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px"><label style="display:flex;flex-direction:column;gap:5px"><span>❤️ PV actuels</span><input id="gestionPVCurrent_'+i+'" type="number" min="0" step="1" value="'+(cur===''?'':cur)+'" onchange="updateGestionPV('+i+',\'current\',this.value)" style="width:100%;background:#17110d;color:#eadfc9;border:1px solid #6a4a21;border-radius:6px;padding:9px"></label><label style="display:flex;flex-direction:column;gap:5px"><span>❤️ PV maximum</span><input id="gestionPVMax_'+i+'" type="number" min="0" step="1" value="'+(max===''?'':max)+'" onchange="updateGestionPV('+i+',\'max\',this.value)" style="width:100%;background:#17110d;color:#eadfc9;border:1px solid #6a4a21;border-radius:6px;padding:9px"></label><label style="display:flex;flex-direction:column;gap:5px"><span>🛡️ PV temporaires</span><input id="gestionPVTemp_'+i+'" type="number" min="0" step="1" value="'+temp+'" onchange="updateGestionPV('+i+',\'temp\',this.value)" style="width:100%;background:#17110d;color:#eadfc9;border:1px solid #6a4a21;border-radius:6px;padding:9px"></label></div></div>';
  }).join('');
 }
-function gestionPVAmount(i){return Math.max(0,Math.floor(Number(document.getElementById('gestionPVAmount_'+i)?.value)||0))}
-function gestionPVStatus(i,textValue){const el=document.getElementById('gestionPVStatus_'+i);if(el)el.textContent=textValue}
-function gestionPVDamage(i){
- const amount=gestionPVAmount(i);if(!amount)return;
- const r=applyPlayerDamage(i,amount);
- if(typeof saveCombatDamageState==='function'&&currentOpenFicheId){combatDamageState[currentOpenFicheId+'_'+i]={actual:r.total,source:'Gestion des PV',roll:amount};saveCombatDamageState();}
+function updateGestionPV(i,field,value){
+ setCombatPlayerStat(i,field,value);
+ renderGestionPV();
  if(typeof sendTVHP==='function')sendTVHP('flash',4000);
- gestionPVStatus(i,'💥 -'+r.total+' PV — 🛡️ -'+r.tempLost+' temp. / ❤️ -'+r.hpLost+' PV');
- renderGestionPV();
-}
-function gestionPVHeal(i){
- const amount=gestionPVAmount(i);if(!amount)return;
- const r=healPlayer(i,amount,{registerCombatEvent:!!currentOpenFicheId});
- if(typeof sendTVHP==='function')sendTVHP('flash',4000);
- gestionPVStatus(i,'❤️ +'+r.healed+' PV');
- renderGestionPV();
-}
-function gestionPVTemp(i){
- const amount=gestionPVAmount(i);if(!amount)return;
- const p=combatPlayers[i];if(!p)return;
- p.temp=Math.max(0,Math.floor(Number(p.temp)||0)+amount);
- saveCombatPlayers();
- if(typeof refreshOpenFichePV==='function'&&currentOpenFicheId)refreshOpenFichePV(currentOpenFicheId);
- if(typeof sendTVHP==='function')sendTVHP('flash',0);
- gestionPVStatus(i,'🛡️ +'+amount+' PV temporaires');
- renderGestionPV();
 }
 
 function renderCombatTargetBanner(id){
