@@ -1375,7 +1375,7 @@ function getCombatTarget(id){
  const index=Number(combatTargets[id]);
  return Number.isInteger(index)&&combatPlayers[index]?index:null;
 }
-function applyPlayerDamage(index,damage){
+function applyPlayerDamage(index,damage,options){
  const p=combatPlayers[index];if(!p)return {tempLost:0,hpLost:0,total:0};
  let remaining=Math.max(0,Math.floor(Number(damage)||0));
  const tempBefore=Math.max(0,Math.floor(Number(p.temp)||0));
@@ -1386,6 +1386,7 @@ function applyPlayerDamage(index,damage){
  if(hpBefore!==null)p.current=hpBefore-hpLost;
  saveCombatPlayers();
  if(typeof refreshOpenFichePV==='function'&&currentOpenFicheId)refreshOpenFichePV(currentOpenFicheId);
+ if(options&&options.tvFlash&&typeof sendTVHP==='function')sendTVHP('flash',4000);
  return {tempLost,hpLost,total:tempLost+hpLost};
 }
 function applyCombatPlayerDamage(index,damage){
@@ -1415,7 +1416,6 @@ function renderGestionPV(){
 function updateGestionPV(i,field,value){
  setCombatPlayerStat(i,field,value);
  renderGestionPV();
- if(typeof sendTVHP==='function')sendTVHP('flash',4000);
 }
 
 function renderCombatTargetBanner(id){
@@ -2149,7 +2149,7 @@ function openCombatKaelenShade(){
     checks.forEach(function(ch){
       const i=Number(ch.value);
       const dmg=rollDungeonDice(data[0]);
-      const r=applyPlayerDamage(i,dmg);
+      const r=applyPlayerDamage(i,dmg,{tvFlash:true});
       results.push(combatPlayers[i].name+' : -'+dmg+' dégâts (🛡️ '+r.tempLost+' temp. / ❤️ '+r.hpLost+' PV)');
     });
     const st=document.getElementById('donjonActionStatus');
