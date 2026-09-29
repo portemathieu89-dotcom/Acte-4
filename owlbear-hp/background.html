@@ -3,14 +3,16 @@
 <head><meta charset="utf-8"><title>The Last Heart - PV Cast</title></head>
 <body>
 <script type="module">
-import OBR from "https://cdn.jsdelivr.net/npm/@owlbear-rodeo/sdk@3.1.0/+esm";
+import OBR, { buildLabel } from "https://cdn.jsdelivr.net/npm/@owlbear-rodeo/sdk@3.1.0/+esm";
 
-const MODAL_ID="the-last-heart/pv-cast";
-const OVERLAY_URL="overlay.html";
 const APP_CHANNEL="theLastHeartOwlbearHP";
 const OBR_CHANNEL="the-last-heart/hp";
 const STORAGE_KEY="theLastHeartOwlbearHP";
+const LABEL_ID="the-last-heart/pv-cast-label";
+let isCastReceiver=false;
 let lastUpdatedAt=0;
+let labelExists=false;
+let latestPlayers=null;
 
 function readPayload(){
   try{
@@ -19,11 +21,72 @@ function readPayload(){
   }catch(e){return null}
 }
 
-async function broadcastPayload(payload){
+function labelText(players){
+  return players.slice(0,5).map(p=>{
+    const cur=p.current==null?"—":Math.max(0,Number(p.current)||0);
+    const max=p.max==null?"":"/"+Math.max(0,Number(p.max)||0);
+    const temp=Math.max(0,Number(p.temp)||0);
+    return "❤️ "+String(p.name||"Joueur")+" "+cur+max+(temp?"  🛡️"+temp:"");
+  }).join("   |   ");
+}
+
+async function getTopPosition(){
+  const [position,scale,width,height]=await Promise.all([
+    OBR.viewport.getPosition(),
+    OBR.viewport.getScale(),
+    OBR.viewport.getWidth(),
+    OBR.viewport.getHeight()
+  ]);
+  const safeScale=Math.max(0.01,Number(scale)||1);
+  return {
+    x:Number(position.x)||0,
+    y:(Number(position.y)||0)-Math.max(120,(Number(height)||720)*0.5/safeScale)+55/safeScale
+  };
+}
+
+async function createOrUpdateLabel(players){
+  if(!isCastReceiver||!Array.isArray(players)||!players.length)return;
+  latestPlayers=players;
+
+  const position=await getTopPosition();
+  const text=labelText(players);
+
+  if(!labelExists){
+    const label=buildLabel()
+      .id(LABEL_ID)
+      .plainText(text)
+      .fontFamily("Arial")
+      .fontSize(24)
+      .fontWeight(700)
+      .padding(10)
+      .backgroundColor("#0c0907")
+      .backgroundOpacity(0.88)
+      .cornerRadius(10)
+      .disableHit(true)
+      .locked(true)
+      .position(position)
+      .build();
+
+    await OBR.scene.local.addItems([label]);
+    labelExists=true;
+    return;
+  }
+
+  await OBR.scene.local.updateItems([LABEL_ID],items=>{
+    for(const item of items){
+      item.text.plainText=text;
+      item.position=position;
+    }
+  });
+}
+
+async function handlePayload(payload){
   if(!payload||!Array.isArray(payload.players))return;
   const updatedAt=Number(payload.updatedAt)||0;
   if(updatedAt&&updatedAt<=lastUpdatedAt)return;
   if(updatedAt)lastUpdatedAt=updatedAt;
+  latestPlayers=payload.players;
+  if(isCastReceiver)await createOrUpdateLabel(payload.players);
   try{
     await OBR.broadcast.sendMessage(OBR_CHANNEL,payload,{destination:"ALL"});
   }catch(e){
@@ -33,35 +96,33 @@ async function broadcastPayload(payload){
 
 OBR.onReady(async()=>{
   try{
-    const initial=readPayload();
-    if(initial)await broadcastPayload(initial);
+    const name=await OBR.player.getName();
+    isCastReceiver=String(name||"").toLowerCase().includes("cast receiver");
 
-    let channel=null;
-    try{
-      if("BroadcastChannel" in window){
-        channel=new BroadcastChannel(APP_CHANNEL);
-        channel.onmessage=event=>{broadcastPayload(event.data)};
-      }
-    }catch(e){
-      console.error("The Last Heart PV Cast BroadcastChannel:",e);
+    if(!isCastReceiver)return;
+
+    const initial=readPayload();
+    if(initial)await handlePayload(initial);
+
+    if("BroadcastChannel" in window){
+      const channel=new BroadcastChannel(APP_CHANNEL);
+      channel.onmessage=event=>{handlePayload(event.data)};
     }
 
     window.addEventListener("storage",event=>{
       if(event.key!==STORAGE_KEY||!event.newValue)return;
-      try{broadcastPayload(JSON.parse(event.newValue))}catch(e){}
+      try{handlePayload(JSON.parse(event.newValue))}catch(e){}
     });
 
-    const name=await OBR.player.getName();
-    if(String(name||"").toLowerCase().includes("cast receiver")){
-      await OBR.modal.open({
-        id:MODAL_ID,
-        url:OVERLAY_URL,
-        fullScreen:true,
-        hideBackdrop:true,
-        hidePaper:true,
-        disablePointerEvents:true
-      });
-    }
+    OBR.broadcast.onMessage(OBR_CHANNEL,event=>{
+      if(event.data&&Array.isArray(event.data.players)){
+        createOrUpdateLabel(event.data.players);
+      }
+    });
+
+    setInterval(()=>{
+      if(latestPlayers)createOrUpdateLabel(latestPlayers);
+    },1000);
   }catch(e){
     console.error("The Last Heart PV Cast:",e);
   }
