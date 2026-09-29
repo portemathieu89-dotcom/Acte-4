@@ -1376,7 +1376,7 @@ function getCombatTarget(id){
  return Number.isInteger(index)&&combatPlayers[index]?index:null;
 }
 function sendPlayerHPToTV(mode='flash',duration=4000){
- const players=combatPlayers.map(p=>({
+ const players=combatPlayers.slice(0,4).map(p=>({
   name:p.name,
   current:p.current===''?null:Math.max(0,Math.floor(Number(p.current)||0)),
   max:p.max===''?null:Math.max(0,Math.floor(Number(p.max)||0))
