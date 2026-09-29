@@ -9,52 +9,67 @@ Write-Host ""
 
 $latest = "{}"
 
+function Send-Response($response, [int]$statusCode, [string]$contentType, [string]$body) {
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($body)
+    $response.StatusCode = $statusCode
+    $response.ContentType = $contentType
+    $response.ContentEncoding = [System.Text.Encoding]::UTF8
+    $response.ContentLength64 = [long]$bytes.Length
+    try {
+        $response.OutputStream.Write($bytes, 0, $bytes.Length)
+    }
+    finally {
+        $response.Close()
+    }
+}
+
 while ($listener.IsListening) {
     try {
         $context = $listener.GetContext()
         $request = $context.Request
         $response = $context.Response
 
-        $response.Headers.Add("Access-Control-Allow-Origin", "*")
-        $response.Headers.Add("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
-        $response.Headers.Add("Access-Control-Allow-Headers", "Content-Type")
-        $response.Headers.Add("Cache-Control", "no-store")
+        $response.Headers["Access-Control-Allow-Origin"] = "*"
+        $response.Headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
+        $response.Headers["Access-Control-Allow-Headers"] = "Content-Type"
+        $response.Headers["Cache-Control"] = "no-store"
 
         if ($request.HttpMethod -eq "OPTIONS") {
-            $response.StatusCode = 204
+            Send-Response $response 204 "text/plain; charset=utf-8" ""
+            continue
         }
-        elseif ($request.HttpMethod -eq "POST" -and $request.Url.AbsolutePath -eq "/hp") {
+
+        if ($request.HttpMethod -eq "POST" -and $request.Url.AbsolutePath -eq "/hp") {
             $reader = New-Object System.IO.StreamReader($request.InputStream, $request.ContentEncoding)
             $body = $reader.ReadToEnd()
-            $reader.Close()
+            $reader.Dispose()
 
             try {
                 $parsed = $body | ConvertFrom-Json
                 if ($null -eq $parsed.players) { throw "Payload invalide" }
                 $latest = $body
-                $response.StatusCode = 200
-                $out = [Text.Encoding]::UTF8.GetBytes('{"ok":true}')
+                Send-Response $response 200 "application/json; charset=utf-8" '{"ok":true}'
             }
             catch {
-                $response.StatusCode = 400
-                $out = [Text.Encoding]::UTF8.GetBytes('{"ok":false}')
+                Write-Host ("Payload invalide : " + $_.Exception.Message)
+                Send-Response $response 400 "application/json; charset=utf-8" '{"ok":false}'
             }
-        }
-        elseif ($request.HttpMethod -eq "GET" -and $request.Url.AbsolutePath -eq "/hp") {
-            $response.StatusCode = 200
-            $out = [Text.Encoding]::UTF8.GetBytes($latest)
-        }
-        else {
-            $response.StatusCode = 404
-            $out = [Text.Encoding]::UTF8.GetBytes('{"error":"not found"}')
+            continue
         }
 
-        $response.ContentType = "application/json; charset=utf-8"
-        $response.ContentLength64 = $out.Length
-        $response.OutputStream.Write($out, 0, $out.Length)
-        $response.OutputStream.Close()
+        if ($request.HttpMethod -eq "GET" -and $request.Url.AbsolutePath -eq "/hp") {
+            Send-Response $response 200 "application/json; charset=utf-8" $latest
+            continue
+        }
+
+        Send-Response $response 404 "application/json; charset=utf-8" '{"error":"not found"}'
     }
     catch {
         Write-Host ("Erreur : " + $_.Exception.Message)
+        try {
+            if ($null -ne $context -and $null -ne $context.Response) {
+                $context.Response.Close()
+            }
+        } catch {}
     }
 }
