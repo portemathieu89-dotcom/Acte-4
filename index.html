@@ -1408,7 +1408,7 @@ function applyPlayerDamage(index,damage,options){
  if(hpBefore!==null)p.current=hpBefore-hpLost;
  saveCombatPlayers();
  if(typeof refreshOpenFichePV==='function'&&currentOpenFicheId)refreshOpenFichePV(currentOpenFicheId);
- if(options&&options.tvFlash)sendPlayerHPToTV('flash',4000);
+ if(options&&options.tvFlash)sendPlayerHPToTV(dungeonTVMode?'persistent':'flash',dungeonTVMode?0:4000);
  return {tempLost,hpLost,total:tempLost+hpLost};
 }
 function applyCombatPlayerDamage(index,damage){
