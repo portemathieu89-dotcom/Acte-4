@@ -1,7 +1,7 @@
 {
-  "name":"The Last Heart - PV Cast",
-  "version":"1.0.3",
-  "manifest_version":1,
-  "description":"Affiche les PV des combattants en direct sur le Cast Owlbear Rodeo.",
-  "background_url":"background.html"
+  "name": "The Last Heart - PV Cast",
+  "version": "1.0.4",
+  "manifest_version": 1,
+  "description": "Affiche les PV des combattants en direct sur le Cast Owlbear Rodeo via une passerelle locale.",
+  "background_url": "background.html"
 }
