@@ -1276,7 +1276,7 @@ const owlbearHPStorageKey='theLastHeartOwlbearHP';
 let owlbearHPChannel=null;
 try{if('BroadcastChannel' in window)owlbearHPChannel=new BroadcastChannel('theLastHeartOwlbearHP')}catch(e){owlbearHPChannel=null}
 function sendCombatHPToOwlbear(){
- const players=combatPlayers.slice(0,4).map(p=>({
+ const players=combatPlayers.slice(0,5).map(p=>({
   name:p.name,
   current:p.current===''?null:Math.max(0,Math.floor(Number(p.current)||0)),
   max:p.max===''?null:Math.max(0,Math.floor(Number(p.max)||0)),
