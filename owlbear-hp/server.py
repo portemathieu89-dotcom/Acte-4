@@ -30,7 +30,7 @@ class Handler(SimpleHTTPRequestHandler):
             self.wfile.write(body)
             return
         if self.path.split("?",1)[0]=="/":
-            self.path="/owlbear-hp/manifest.json"
+            self.path="/manifest.json"
         super().do_GET()
 
     def do_POST(self):
