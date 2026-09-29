@@ -587,6 +587,7 @@ function closeImage(){const modal=document.getElementById('imageModal');if(modal
 
 let tvWindow=null;
 let tvReadyAt=0;
+let dungeonTVMode=false;
 const TV_READY_TIMEOUT=6000;
 const tvChannel=('BroadcastChannel' in window)?new BroadcastChannel('theLastHeartTV'):null;
 
@@ -601,7 +602,10 @@ function sendTVMessage(data){
 }
 if(tvChannel){
   tvChannel.addEventListener('message',e=>{
-    if(e.data?.type==='theLastHeartTVReady') tvReadyAt=Date.now();
+    if(e.data?.type==='theLastHeartTVReady'){
+      tvReadyAt=Date.now();
+      if(dungeonTVMode)sendPlayerHPToTV('persistent');
+    }
   });
 }
 setInterval(()=>{if(tvWindow?.closed)tvWindow=null;},1000);
@@ -624,10 +628,10 @@ function openTVPage(page,title){
   tvWindow.focus();
 }
 
-function show(id,btn){document.querySelectorAll('main section').forEach(x=>x.classList.add('hidden'));const target=document.getElementById(id);if(target)target.classList.remove('hidden');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));if(btn)btn.classList.add('active');document.querySelectorAll('.subnav button').forEach(x=>x.classList.remove('subactive'));if(id==='inventaire'&&typeof renderInventories==='function')renderInventories();if(id==='gestionPV'&&typeof renderGestionPV==='function')renderGestionPV();if(id==='boutiqueAlchimie'&&typeof renderAlchemyShop==='function')renderAlchemyShop();if(id==='boutiqueBonCap'&&typeof renderBonCapShop==='function')renderBonCapShop();if(id==='boutiquePort'&&typeof renderPortShop==='function')renderPortShop();window.scrollTo(0,0)}
+function show(id,btn){setDungeonTVMode(false);document.querySelectorAll('main section').forEach(x=>x.classList.add('hidden'));const target=document.getElementById(id);if(target)target.classList.remove('hidden');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));if(btn)btn.classList.add('active');document.querySelectorAll('.subnav button').forEach(x=>x.classList.remove('subactive'));if(id==='inventaire'&&typeof renderInventories==='function')renderInventories();if(id==='gestionPV'&&typeof renderGestionPV==='function')renderGestionPV();if(id==='boutiqueAlchimie'&&typeof renderAlchemyShop==='function')renderAlchemyShop();if(id==='boutiqueBonCap'&&typeof renderBonCapShop==='function')renderBonCapShop();if(id==='boutiquePort'&&typeof renderPortShop==='function')renderPortShop();window.scrollTo(0,0)}
 function toggleAct(id,btn){const nav=document.getElementById(id+'Nav');if(!nav)return;const isOpen=nav.classList.toggle('open');btn.classList.toggle('collapsed',!isOpen);show(id,btn)}
 function toggleMenuGroup(navId,btn){const nav=document.getElementById(navId);if(!nav)return;const isOpen=nav.classList.toggle('open');btn.classList.toggle('collapsed',!isOpen)}
-function showActPart(sectionId,btn,navId,targetId){document.querySelectorAll('main section').forEach(x=>x.classList.add('hidden'));const target=document.getElementById(sectionId);if(target)target.classList.remove('hidden');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.subnav button').forEach(x=>x.classList.remove('subactive'));if(btn)btn.classList.add('subactive');const anchor=document.getElementById(targetId);if(anchor){anchor.classList.remove('hidden');window.scrollTo({top:Math.max(0,anchor.getBoundingClientRect().top+window.scrollY-25),behavior:'smooth'})}}
+function showActPart(sectionId,btn,navId,targetId){setDungeonTVMode(targetId==='acteDonjon');document.querySelectorAll('main section').forEach(x=>x.classList.add('hidden'));const target=document.getElementById(sectionId);if(target)target.classList.remove('hidden');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.subnav button').forEach(x=>x.classList.remove('subactive'));if(btn)btn.classList.add('subactive');const anchor=document.getElementById(targetId);if(anchor){anchor.classList.remove('hidden');window.scrollTo({top:Math.max(0,anchor.getBoundingClientRect().top+window.scrollY-25),behavior:'smooth'})}}
 function openFiche(id){zoom=1;const html=typeof renderFicheContent==='function'?renderFicheContent(id):'';const box=document.getElementById('fiche');if(box)box.innerHTML=html||'<p>Aucune fiche n’est définie pour cet élément.</p>';const modal=document.getElementById('modal');if(modal)modal.classList.add('open');const ficheBox=document.getElementById('ficheBox');if(ficheBox)ficheBox.scrollTop=0;if(typeof applyZoom==='function')applyZoom()}
 function renderFicheContent(id){return renderFichePV(id)}
 const fiches={
@@ -1382,6 +1386,16 @@ function sendPlayerHPToTV(mode='flash',duration=4000){
   max:p.max===''?null:Math.max(0,Math.floor(Number(p.max)||0))
  }));
  if(typeof sendTVMessage==='function')sendTVMessage({type:'theLastHeartDamageHP',mode,players,duration});
+}
+function setDungeonTVMode(active){
+ const next=!!active;
+ if(dungeonTVMode===next){
+   if(next)sendPlayerHPToTV('persistent');
+   return;
+ }
+ dungeonTVMode=next;
+ if(dungeonTVMode)sendPlayerHPToTV('persistent');
+ else sendPlayerHPToTV('hide');
 }
 function applyPlayerDamage(index,damage,options){
  const p=combatPlayers[index];if(!p)return {tempLost:0,hpLost:0,total:0};
