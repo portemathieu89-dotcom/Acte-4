@@ -1375,6 +1375,14 @@ function getCombatTarget(id){
  const index=Number(combatTargets[id]);
  return Number.isInteger(index)&&combatPlayers[index]?index:null;
 }
+function sendPlayerHPToTV(mode='flash',duration=4000){
+ const players=combatPlayers.map(p=>({
+  name:p.name,
+  current:p.current===''?null:Math.max(0,Math.floor(Number(p.current)||0)),
+  max:p.max===''?null:Math.max(0,Math.floor(Number(p.max)||0))
+ }));
+ if(typeof sendTVMessage==='function')sendTVMessage({type:'theLastHeartDamageHP',mode,players,duration});
+}
 function applyPlayerDamage(index,damage,options){
  const p=combatPlayers[index];if(!p)return {tempLost:0,hpLost:0,total:0};
  let remaining=Math.max(0,Math.floor(Number(damage)||0));
@@ -1386,7 +1394,7 @@ function applyPlayerDamage(index,damage,options){
  if(hpBefore!==null)p.current=hpBefore-hpLost;
  saveCombatPlayers();
  if(typeof refreshOpenFichePV==='function'&&currentOpenFicheId)refreshOpenFichePV(currentOpenFicheId);
- if(options&&options.tvFlash&&typeof sendTVHP==='function')sendTVHP('flash',4000);
+ if(options&&options.tvFlash)sendPlayerHPToTV('flash',4000);
  return {tempLost,hpLost,total:tempLost+hpLost};
 }
 function applyCombatPlayerDamage(index,damage){
@@ -1799,7 +1807,7 @@ initCombatPV();
  function rollDice(expr){const m=String(expr||'').trim().toLowerCase().match(/^(\d*)d(\d+)(?:\s*([+-])\s*(\d+))?$/);if(!m)return null;const count=Math.max(1,Math.min(100,Number(m[1]||1))),sides=Math.max(1,Math.min(1000,Number(m[2]))),sign=m[3]==='-'?-1:1,mod=m[4]?sign*Number(m[4]):0;let total=mod;for(let i=0;i<count;i++)total+=Math.floor(Math.random()*sides)+1;return{total,count,sides,mod}}
  const damageBellAudio=new Audio('sons/sons/cloche_necropole_2_5s.mp3');damageBellAudio.preload='auto';function beep(){try{damageBellAudio.currentTime=0;const p=damageBellAudio.play();if(p&&p.catch)p.catch(()=>{})}catch(e){}}
  function tvPlayers(){return combatPlayers.map(p=>({name:p.name,current:p.current===''?null:Math.max(0,Math.floor(Number(p.current)||0)),max:p.max===''?null:Math.max(0,Math.floor(Number(p.max)||0))}))}
- function sendTVHP(mode,duration=0){sendTVMessage({type:'theLastHeartDamageHP',mode,players:tvPlayers(),duration})}
+ function sendTVHP(mode,duration=0){sendPlayerHPToTV(mode,duration)}
  function applyHazardDamage(roll){const results=[];combatPlayers.forEach((p,i)=>{const r=applyPlayerDamage(i,roll.total);combatDamageState[currentOpenFicheId+'_'+i]={actual:r.total,source:'Minuteur MJ',roll:roll.total};results.push(p.name+': -'+r.total+(r.tempLost?' ('+r.tempLost+' PV temp.)':''))});saveCombatDamageState();return results}
  function damageTick(){const roll=rollDice(state.dice);if(!roll){state.active=false;save();render();sendTVHP('hide');alert('Jet de dégâts invalide. Utilise par exemple 1d6 ou 2d8+2.');return}const results=applyHazardDamage(roll);beep();const now=Date.now();state.lastTickAt=now;state.log.unshift(new Date(now).toLocaleTimeString()+' — '+roll.total+' dégâts ('+state.dice+') — '+results.join(' · '));state.log=state.log.slice(0,12);save();sendTVHP('flash',4000);render()}
  function catchUp(){if(!state.active||!state.lastTickAt)return;const now=Date.now(),interval=Math.max(100,state.intervalMs);while(now-state.lastTickAt>=interval){state.lastTickAt+=interval;const roll=rollDice(state.dice);if(!roll){state.active=false;sendTVHP('hide');break}const results=applyHazardDamage(roll);beep();state.log.unshift(new Date(state.lastTickAt).toLocaleTimeString()+' — '+roll.total+' dégâts ('+state.dice+') — '+results.join(' · '));state.log=state.log.slice(0,12);sendTVHP('flash',4000)}save()}
