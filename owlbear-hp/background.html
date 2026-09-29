@@ -4,10 +4,53 @@
 <body>
 <script type="module">
 import OBR from "https://cdn.jsdelivr.net/npm/@owlbear-rodeo/sdk@3.1.0/+esm";
+
 const MODAL_ID="the-last-heart/pv-cast";
 const OVERLAY_URL="overlay.html";
+const APP_CHANNEL="theLastHeartOwlbearHP";
+const OBR_CHANNEL="the-last-heart/hp";
+const STORAGE_KEY="theLastHeartOwlbearHP";
+let lastUpdatedAt=0;
+
+function readPayload(){
+  try{
+    const payload=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
+    return payload&&Array.isArray(payload.players)?payload:null;
+  }catch(e){return null}
+}
+
+async function broadcastPayload(payload){
+  if(!payload||!Array.isArray(payload.players))return;
+  const updatedAt=Number(payload.updatedAt)||0;
+  if(updatedAt&&updatedAt<=lastUpdatedAt)return;
+  if(updatedAt)lastUpdatedAt=updatedAt;
+  try{
+    await OBR.broadcast.sendMessage(OBR_CHANNEL,payload,{destination:"ALL"});
+  }catch(e){
+    console.error("The Last Heart PV Cast broadcast:",e);
+  }
+}
+
 OBR.onReady(async()=>{
   try{
+    const initial=readPayload();
+    if(initial)await broadcastPayload(initial);
+
+    let channel=null;
+    try{
+      if("BroadcastChannel" in window){
+        channel=new BroadcastChannel(APP_CHANNEL);
+        channel.onmessage=event=>{broadcastPayload(event.data)};
+      }
+    }catch(e){
+      console.error("The Last Heart PV Cast BroadcastChannel:",e);
+    }
+
+    window.addEventListener("storage",event=>{
+      if(event.key!==STORAGE_KEY||!event.newValue)return;
+      try{broadcastPayload(JSON.parse(event.newValue))}catch(e){}
+    });
+
     const name=await OBR.player.getName();
     if(String(name||"").toLowerCase().includes("cast receiver")){
       await OBR.modal.open({
@@ -19,7 +62,9 @@ OBR.onReady(async()=>{
         disablePointerEvents:true
       });
     }
-  }catch(e){console.error("The Last Heart PV Cast:",e);}
+  }catch(e){
+    console.error("The Last Heart PV Cast:",e);
+  }
 });
 </script>
 </body>
