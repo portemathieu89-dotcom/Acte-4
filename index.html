@@ -1287,6 +1287,7 @@ function sendCombatHPToOwlbear(){
  try{if(owlbearHPChannel)owlbearHPChannel.postMessage(payload)}catch(e){}
 }
 function saveCombatPlayers(){localStorage.setItem(combatPlayersKey,JSON.stringify(combatPlayers));sendCombatHPToOwlbear()}
+sendCombatHPToOwlbear();
 function setCombatPlayerStat(i,field,value){
  const p=combatPlayers[i];if(!p)return;
  if(field==='ca')p.ca=value===''?'':Math.max(0,Math.floor(Number(value)||0));
