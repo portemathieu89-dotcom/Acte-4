@@ -3,5 +3,5 @@
   "version":"1.0.0",
   "manifest_version":1,
   "description":"Affiche les PV des 4 joueurs en direct sur le Cast Owlbear Rodeo.",
-  "background_url":"/owlbear-hp/background.html"
+  "background_url":"background.html"
 }
