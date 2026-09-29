@@ -1383,7 +1383,8 @@ function sendPlayerHPToTV(mode='flash',duration=4000){
  const players=combatPlayers.slice(0,4).map(p=>({
   name:p.name,
   current:p.current===''?null:Math.max(0,Math.floor(Number(p.current)||0)),
-  max:p.max===''?null:Math.max(0,Math.floor(Number(p.max)||0))
+  max:p.max===''?null:Math.max(0,Math.floor(Number(p.max)||0)),
+  temp:Math.max(0,Math.floor(Number(p.temp)||0))
  }));
  if(typeof sendTVMessage==='function')sendTVMessage({type:'theLastHeartDamageHP',mode,players,duration});
 }
@@ -2115,10 +2116,10 @@ function openCombatKaelenShade(){
       if(data.understand)html+='<p><b>Comprendre :</b> '+escapeHTML(data.understand)+'</p>';
       if(data.disarm&&data.disarm!=='—')html+='<p><b>Désamorçage :</b> '+escapeHTML(data.disarm)+'</p>';
       html+='<p><b>Dégâts :</b> <strong>'+escapeHTML(data.damage)+'</strong></p><p><b>Effet :</b> '+escapeHTML(data.effect)+'</p>';
-      html+='<div class="donjon-action"><h4>Joueurs touchés</h4><div class="donjon-target-grid">'+combatPlayerNames.map(function(n,i){return '<label><input type="checkbox" name="donjonTrapPlayer" value="'+i+'"> '+escapeHTML(n)+'</label>';}).join('')+'</div><button type="button" class="link danger" onclick="applyDungeonTrap(\''+id+'\')">💥 Infliger les dégâts</button><div id="donjonActionStatus" class="donjon-status"></div></div>';
+      html+='<div class="donjon-action"><h4>Joueurs touchés</h4><div class="donjon-target-grid">'+combatPlayerNames.map(function(n,i){return '<label><input type="checkbox" name="donjonTrapPlayer" value="'+i+'" onchange="renderDungeonTrapResults()"> '+escapeHTML(n)+'</label>';}).join('')+'</div><div id="donjonTrapResults" style="margin-top:12px"></div><button type="button" class="link danger" onclick="applyDungeonTrap(\''+id+'\')">💥 Infliger les dégâts</button><div id="donjonActionStatus" class="donjon-status"></div></div>';
     }else if(data.type==='halo'){
       html+='<p><b>Étude :</b> '+escapeHTML(data.difficulty)+'</p><p>'+escapeHTML(data.body)+'</p><p><b>Réaction :</b> '+escapeHTML(data.effect)+'</p>';
-      html+='<div class="donjon-action"><h4>Joueurs touchés</h4><div class="donjon-target-grid">'+combatPlayerNames.map(function(n,i){return '<label><input type="checkbox" name="donjonTrapPlayer" value="'+i+'"> '+escapeHTML(n)+'</label>';}).join('')+'</div><button type="button" class="link danger" onclick="applyDungeonTrap(\'HALO\')">💥 Déclencher la réaction</button><div id="donjonActionStatus" class="donjon-status"></div></div>';
+      html+='<div class="donjon-action"><h4>Joueurs touchés</h4><div class="donjon-target-grid">'+combatPlayerNames.map(function(n,i){return '<label><input type="checkbox" name="donjonTrapPlayer" value="'+i+'" onchange="renderDungeonTrapResults()"> '+escapeHTML(n)+'</label>';}).join('')+'</div><div id="donjonTrapResults" style="margin-top:12px"></div><button type="button" class="link danger" onclick="applyDungeonTrap(\'HALO\')">💥 Déclencher la réaction</button><div id="donjonActionStatus" class="donjon-status"></div></div>';
     }else{
       html+='<p><b>Découverte :</b> '+escapeHTML(data.difficulty)+'</p><p>'+escapeHTML(data.body||'')+'</p>';
       currentState().foundSecrets[id]=true;
@@ -2141,6 +2142,17 @@ function openCombatKaelenShade(){
     for(let i=0;i<Number(m[1]);i++)total+=Math.floor(Math.random()*Number(m[2]))+1;
     return total;
   }
+
+  window.renderDungeonTrapResults=function(){
+    const box=document.getElementById('donjonTrapResults');
+    if(!box)return;
+    const checks=[...document.querySelectorAll('input[name="donjonTrapPlayer"]:checked')];
+    if(!checks.length){box.innerHTML='';return;}
+    box.innerHTML='<div style="padding:10px;border:1px solid #58432e;border-radius:7px;background:#1b130e"><div style="font-weight:bold;color:#e0bd79;margin-bottom:8px">Résultat du jet de sauvegarde</div><div style="font-size:12px;color:#bca98e;margin-bottom:8px">Chaque joueur est traité séparément · Réussite = moitié des dégâts · Échec = dégâts complets</div>'+checks.map(function(ch){
+      const i=Number(ch.value);
+      return '<div style="display:grid;grid-template-columns:minmax(100px,1fr) 150px;gap:8px;align-items:center;margin:6px 0"><span>'+escapeHTML(combatPlayers[i]?.name||'Joueur')+'</span><select id="donjonTrapResult_'+i+'" style="background:#17110d;color:#eadfc9;border:1px solid #6a4a21;border-radius:6px;padding:7px"><option value="fail">🔴 Échec</option><option value="success">🟢 Réussite</option></select></div>';
+    }).join('')+'</div>';
+  };
 
   window.applyDungeonTrap=function(id){
     const checks=[...document.querySelectorAll('input[name="donjonTrapPlayer"]:checked')];
@@ -2170,9 +2182,12 @@ function openCombatKaelenShade(){
     const results=[];
     checks.forEach(function(ch){
       const i=Number(ch.value);
-      const dmg=rollDungeonDice(data[0]);
+      const resultEl=document.getElementById('donjonTrapResult_'+i);
+      const result=resultEl?resultEl.value:'fail';
+      const fullDamage=rollDungeonDice(data[0]);
+      const dmg=result==='success'?Math.floor(fullDamage/2):fullDamage;
       const r=applyPlayerDamage(i,dmg,{tvFlash:true});
-      results.push(combatPlayers[i].name+' : -'+dmg+' dégâts (🛡️ '+r.tempLost+' temp. / ❤️ '+r.hpLost+' PV)');
+      results.push(combatPlayers[i].name+' : -'+dmg+' dégâts ('+(result==='success'?'🟢 réussite':'🔴 échec')+') · 🛡️ '+r.tempLost+' temp. · ❤️ '+r.hpLost+' PV');
     });
     const st=document.getElementById('donjonActionStatus');
     if(st)st.textContent='💥 '+results.join(' · ');
