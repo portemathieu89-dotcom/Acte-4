@@ -1455,7 +1455,7 @@ function healPlayer(index,amount,options){
 }
 function renderGestionPV(){
  const wrap=document.getElementById('gestionPVPlayers');if(!wrap)return;
- wrap.innerHTML=combatPlayers.slice(0,4).map(function(p,i){
+ wrap.innerHTML=combatPlayers.slice(0,5).map(function(p,i){
    const cur=p.current===''?'':Math.max(0,Number(p.current)||0);
    const max=p.max===''?'':Math.max(0,Number(p.max)||0);
    const temp=Math.max(0,Math.floor(Number(p.temp)||0));
