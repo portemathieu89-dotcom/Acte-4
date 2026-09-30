@@ -1290,6 +1290,8 @@ function openPortTV(){openTVPage('boutique_port_tv.html','Port')}
 
 
 const combatPlayersKey='theLastHeartCombatPlayers';
+const destrierActiveKey='theLastHeartDestrierActive';
+let destrierActive=localStorage.getItem(destrierActiveKey)!=='false';
 const combatPlayerNames=['Fïnn','Akio','Sylas','Syvens','Destrier'];
 const combatMeterPlayerNames=['Fïnn','Akio','Sylas','Syvens'];
 let combatPlayers=JSON.parse(localStorage.getItem(combatPlayersKey)||'null');
@@ -1299,6 +1301,8 @@ if(!Array.isArray(combatPlayers)){
  combatPlayers=combatPlayerNames.map((name,i)=>{const p=combatPlayers[i]||{};return {name,current:p?.current??'',max:p?.max??'',ca:p?.ca??'',temp:Math.max(0,Math.floor(Number(p?.temp)||0))}});
 }
 function saveCombatPlayers(){localStorage.setItem(combatPlayersKey,JSON.stringify(combatPlayers))}
+function setDestrierActive(active){destrierActive=!!active;localStorage.setItem(destrierActiveKey,String(destrierActive));renderGestionPV()}
+function isDestrierActive(index){return index!==4||destrierActive}
 function setCombatPlayerStat(i,field,value){
  const p=combatPlayers[i];if(!p)return;
  if(field==='ca')p.ca=value===''?'':Math.max(0,Math.floor(Number(value)||0));
@@ -1459,7 +1463,7 @@ function renderGestionPV(){
    const cur=p.current===''?'':Math.max(0,Number(p.current)||0);
    const max=p.max===''?'':Math.max(0,Number(p.max)||0);
    const temp=Math.max(0,Math.floor(Number(p.temp)||0));
-   return '<div class="card combat-player-card"><h3>👤 '+escapeHTML(p.name)+'</h3><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px"><label style="display:flex;flex-direction:column;gap:5px"><span>❤️ PV actuels</span><input id="gestionPVCurrent_'+i+'" type="number" min="0" step="1" value="'+(cur===''?'':cur)+'" onchange="updateGestionPV('+i+',\'current\',this.value)" style="width:100%;background:#17110d;color:#eadfc9;border:1px solid #6a4a21;border-radius:6px;padding:9px"></label><label style="display:flex;flex-direction:column;gap:5px"><span>❤️ PV maximum</span><input id="gestionPVMax_'+i+'" type="number" min="0" step="1" value="'+(max===''?'':max)+'" onchange="updateGestionPV('+i+',\'max\',this.value)" style="width:100%;background:#17110d;color:#eadfc9;border:1px solid #6a4a21;border-radius:6px;padding:9px"></label><label style="display:flex;flex-direction:column;gap:5px"><span>🛡️ PV temporaires</span><input id="gestionPVTemp_'+i+'" type="number" min="0" step="1" value="'+temp+'" onchange="updateGestionPV('+i+',\'temp\',this.value)" style="width:100%;background:#17110d;color:#eadfc9;border:1px solid #6a4a21;border-radius:6px;padding:9px"></label></div></div>';
+   return '<div class="card combat-player-card"><h3>👤 '+escapeHTML(p.name)+'</h3>'+(i===4?'<label style="display:flex;align-items:center;gap:8px;margin-top:10px"><input type="checkbox" '+(destrierActive?'checked':'')+' onchange="setDestrierActive(this.checked)"> ⚔️ Destrier actif</label>':'')+'<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px"><label style="display:flex;flex-direction:column;gap:5px"><span>❤️ PV actuels</span><input id="gestionPVCurrent_'+i+'" type="number" min="0" step="1" value="'+(cur===''?'':cur)+'" onchange="updateGestionPV('+i+',\'current\',this.value)" style="width:100%;background:#17110d;color:#eadfc9;border:1px solid #6a4a21;border-radius:6px;padding:9px"></label><label style="display:flex;flex-direction:column;gap:5px"><span>❤️ PV maximum</span><input id="gestionPVMax_'+i+'" type="number" min="0" step="1" value="'+(max===''?'':max)+'" onchange="updateGestionPV('+i+',\'max\',this.value)" style="width:100%;background:#17110d;color:#eadfc9;border:1px solid #6a4a21;border-radius:6px;padding:9px"></label><label style="display:flex;flex-direction:column;gap:5px"><span>🛡️ PV temporaires</span><input id="gestionPVTemp_'+i+'" type="number" min="0" step="1" value="'+temp+'" onchange="updateGestionPV('+i+',\'temp\',this.value)" style="width:100%;background:#17110d;color:#eadfc9;border:1px solid #6a4a21;border-radius:6px;padding:9px"></label></div></div>';
  }).join('');
 }
 function updateGestionPV(i,field,value){
@@ -1849,7 +1853,7 @@ initCombatPV();
  const damageBellAudio=new Audio('sons/sons/cloche_necropole_2_5s.mp3');damageBellAudio.preload='auto';function beep(){try{damageBellAudio.currentTime=0;const p=damageBellAudio.play();if(p&&p.catch)p.catch(()=>{})}catch(e){}}
  function tvPlayers(){return combatPlayers.map(p=>({name:p.name,current:p.current===''?null:Math.max(0,Math.floor(Number(p.current)||0)),max:p.max===''?null:Math.max(0,Math.floor(Number(p.max)||0))}))}
  function sendTVHP(mode,duration=0){sendPlayerHPToTV(mode,duration)}
- function applyHazardDamage(){const results=[];combatPlayers.forEach((p,i)=>{const roll=rollDice(state.dice);if(!roll)return;const r=applyPlayerDamage(i,roll.total);combatDamageState[currentOpenFicheId+'_'+i]={actual:r.total,source:'Minuteur MJ',roll:roll.total};results.push(p.name+': -'+r.total+' ('+roll.total+' sur '+state.dice+(r.tempLost?' ; '+r.tempLost+' PV temp.':'')+')')});saveCombatDamageState();return results}
+ function applyHazardDamage(){const results=[];combatPlayers.forEach((p,i)=>{if(!isDestrierActive(i))return;const roll=rollDice(state.dice);if(!roll)return;const r=applyPlayerDamage(i,roll.total);combatDamageState[currentOpenFicheId+'_'+i]={actual:r.total,source:'Minuteur MJ',roll:roll.total};results.push(p.name+': -'+r.total+' ('+roll.total+' sur '+state.dice+(r.tempLost?' ; '+r.tempLost+' PV temp.':'')+')')});saveCombatDamageState();return results}
  function damageTick(){const test=rollDice(state.dice);if(!test){state.active=false;save();render();sendTVHP('hide');alert('Jet de dégâts invalide. Utilise par exemple 1d6 ou 2d8+2.');return}const results=applyHazardDamage();beep();const now=Date.now();state.lastTickAt=now;state.log.unshift(new Date(now).toLocaleTimeString()+' — Minuteur : '+state.dice+' par joueur — '+results.join(' · '));state.log=state.log.slice(0,12);save();sendTVHP('flash',4000);render()}
  function catchUp(){if(!state.active||!state.lastTickAt)return;const now=Date.now(),interval=Math.max(100,state.intervalMs);while(now-state.lastTickAt>=interval){state.lastTickAt+=interval;const test=rollDice(state.dice);if(!test){state.active=false;sendTVHP('hide');break}const results=applyHazardDamage();beep();state.log.unshift(new Date(state.lastTickAt).toLocaleTimeString()+' — Minuteur : '+state.dice+' par joueur — '+results.join(' · '));state.log=state.log.slice(0,12);sendTVHP('flash',4000)}save()}
  function render(){const min=getEl('damageTimerMinutes'),dice=getEl('damageTimerDice'),clock=getEl('damageTimerClock'),status=getEl('damageTimerStatus'),last=getEl('damageTimerLast'),log=getEl('damageTimerLog');if(!min||!dice||!clock||!status||!last||!log)return;min.value=String(Math.max(0.1,state.intervalMs/60000));dice.value=state.dice;const elapsed=state.active&&state.startedAt?Date.now()-state.startedAt:state.elapsedMs||0;clock.textContent=formatTime(elapsed);status.textContent=state.active?'🟢 En cours — prochain dégât dans '+formatTime(Math.max(0,state.intervalMs-((Date.now()-state.lastTickAt)%state.intervalMs))):'⏸️ En pause';last.textContent=state.log.length?'💥 Dernier tick : '+state.log[0]:'Aucun dégât appliqué.';log.innerHTML=state.log.map(x=>'<div>'+escapeHTML(x)+'</div>').join('')}
@@ -2208,6 +2212,7 @@ function openCombatKaelenShade(){
     const results=[];
     checks.forEach(function(ch){
       const i=Number(ch.value);
+      if(!isDestrierActive(i))return;
       const resultEl=document.getElementById('donjonTrapResult_'+i);
       const result=resultEl?resultEl.value:'fail';
       const fullDamage=rollDungeonDice(data[0]);
