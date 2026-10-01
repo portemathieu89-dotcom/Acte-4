@@ -1511,13 +1511,15 @@ function setCombatAoeTargetFromInput(input){
 function setCombatAOEResult(id,aoeId,index,result,button){
  const s=getCombatAoeState(id,aoeId);
  if(!s.targets.includes(index))s.targets.push(index);
- s.results[index]=result;
+ const wasSelected=s.results[index]===result;
+ if(wasSelected)delete s.results[index];
+ else s.results[index]=result;
  saveCombatAoeSaveState();
  const autoEffect=combatAoeAutomaticEffects[aoeId];
  if(autoEffect){
    const source='aoe:'+id+':'+aoeId+':'+index;
-   if(result==='fail')applyAutomaticInitiativeEffect(id,index,autoEffect.effectId,autoEffect.turns,source);
-   else removeAutomaticInitiativeEffect(id,index,autoEffect.effectId,source);
+   if(wasSelected||result==='success')removeAutomaticInitiativeEffect(id,index,autoEffect.effectId,source);
+   else applyAutomaticInitiativeEffect(id,index,autoEffect.effectId,autoEffect.turns,source);
    saveInitiative();
  }
  const row=button?.closest('.combat-aoe-target-row');
@@ -1527,12 +1529,19 @@ function setCombatAOEResult(id,aoeId,index,result,button){
  if(fail&&success){
    fail.classList.remove('save-fail','aoe-save-selected','aoe-save-fail');
    success.classList.remove('save-success','aoe-save-selected','aoe-save-success');
-   if(result==='fail')fail.classList.add('save-fail','aoe-save-selected','aoe-save-fail');
-   else success.classList.add('save-success','aoe-save-selected','aoe-save-success');
+   if(!wasSelected){
+     if(result==='fail')fail.classList.add('save-fail','aoe-save-selected','aoe-save-fail');
+     else success.classList.add('save-success','aoe-save-selected','aoe-save-success');
+   }
  }
  if(out){
-   out.className='combat-save-result '+(result==='fail'?'save-fail':'save-success');
-   out.innerHTML=result==='fail'?'<b>🔴 ÉCHEC</b>':'<b>🟢 RÉUSSITE</b>';
+   if(wasSelected){
+     out.className='combat-save-result';
+     out.innerHTML='';
+   }else{
+     out.className='combat-save-result '+(result==='fail'?'save-fail':'save-success');
+     out.innerHTML=result==='fail'?'<b>🔴 ÉCHEC</b>':'<b>🟢 RÉUSSITE</b>';
+   }
  }
 }
 function setCombatSaveTarget(select){
@@ -1548,15 +1557,26 @@ function setCombatSaveTarget(select){
 function setCombatSaveResult(result,button){
  const id=currentOpenFicheId,wrap=button?.closest('.combat-save-controls'),saveId=String(wrap?.dataset?.combatSaveId||'').trim(),select=wrap?.querySelector('.combat-save-target-select'),targetIndex=Number(select?.value),out=wrap?.querySelector('.combat-save-result');
  if(!saveId||!Number.isInteger(targetIndex)||!combatPlayers[targetIndex]){if(out)out.innerHTML='<b>⚠️ Sélectionne d’abord un joueur cible.</b>';return;}
- const key=id+'::'+saveId;combatSaveState[key]={targetIndex,result};saveCombatSaveState();
+ const key=id+'::'+saveId;
+ const previous=combatSaveState[key];
+ const wasSelected=previous&&Number(previous.targetIndex)===targetIndex&&previous.result===result;
+ if(wasSelected){
+   delete combatSaveState[key];
+ }else{
+   combatSaveState[key]={targetIndex,result};
+ }
+ saveCombatSaveState();
  const autoEffect=combatSaveAutomaticEffects[saveId];
  if(autoEffect){
    const source='save:'+id+':'+saveId+':'+targetIndex;
-   if(result==='fail')applyAutomaticInitiativeEffect(id,targetIndex,autoEffect.effectId,autoEffect.turns,source);
-   else removeAutomaticInitiativeEffect(id,targetIndex,autoEffect.effectId,source);
+   if(wasSelected||result==='success')removeAutomaticInitiativeEffect(id,targetIndex,autoEffect.effectId,source);
+   else applyAutomaticInitiativeEffect(id,targetIndex,autoEffect.effectId,autoEffect.turns,source);
    saveInitiative();
  }
- if(out){out.className='combat-save-result '+(result==='fail'?'save-fail':'save-success');out.innerHTML=result==='fail'?'<b>🔴 ÉCHEC — dégâts complets</b>':'<b>🟢 RÉUSSITE — demi-dégâts</b>'}
+ if(out){
+   if(wasSelected){out.className='combat-save-result';out.innerHTML='';}
+   else{out.className='combat-save-result '+(result==='fail'?'save-fail':'save-success');out.innerHTML=result==='fail'?'<b>🔴 ÉCHEC — dégâts complets</b>':'<b>🟢 RÉUSSITE — demi-dégâts</b>';}
+ }
 }
 let combatAttackTargets=JSON.parse(localStorage.getItem('theLastHeartCombatAttackTargets')||'{}');
 function saveCombatAttackTargets(){localStorage.setItem('theLastHeartCombatAttackTargets',JSON.stringify(combatAttackTargets))}
