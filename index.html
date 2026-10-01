@@ -1654,6 +1654,13 @@ function decrementInitiativeEffects(id,key){
  p.effects=p.effects.map(e=>{if(e.level)return e;const t=Number(e.turns)||0;return t>0?{...e,turns:t-1}:e}).filter(e=>e.level||e.turns!==0||e.permanent);
  saveInitiative();
 }
+function clearCombatAoeTurnState(id){
+ const prefix=String(id||'')+'::';
+ Object.keys(combatAoeSaveState).forEach(function(key){
+   if(key.startsWith(prefix))delete combatAoeSaveState[key];
+ });
+ saveCombatAoeSaveState();
+}
 function nextInitiative(id,direction=1){
  const state=ensureInitiative(id);if(!state)return;
  const active=getInitiativeSorted(id).filter(p=>p.initiative!==''&&!isInitiativeDead(id,p));
@@ -1669,6 +1676,7 @@ function nextInitiative(id,direction=1){
  if(next<0){next=active.length-1;if(state.round>1)state.round--}
  state.current=active[next].key;
  clearCombatTurnResults(id);
+ clearCombatAoeTurnState(id);
  if(state.current==='enemy_2'&&getNekriHealingState(id))clearNekriRepairPresence(id);
  saveInitiative();refreshOpenFichePV(id,false);
 }
