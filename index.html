@@ -1043,7 +1043,7 @@ function rollInlineDice(count,sides,modifier,button){
    combatDamageState[currentOpenFicheId+'_'+targetIndex]={actual:total};
    saveCombatDamageState();
    if(out)out.innerHTML+='<span class="combat-auto-damage"> → 🛡️ -'+result.tempLost+' / ❤️ -'+result.hpLost+'</span>';
-   if(save){delete combatSaveState[currentOpenFicheId];saveCombatSaveState();}
+   if(save){delete combatSaveState[saveId?currentOpenFicheId+'::'+saveId:currentOpenFicheId];saveCombatSaveState();}
  }
 }
 function rollInlineDiceMulti(parts,button){
@@ -1085,7 +1085,7 @@ function rollInlineDiceMulti(parts,button){
    combatDamageState[currentOpenFicheId+'_'+targetIndex]={actual:total};
    saveCombatDamageState();
    if(out)out.innerHTML+='<span class="combat-auto-damage"> → 🛡️ -'+result.tempLost+' / ❤️ -'+result.hpLost+'</span>';
-   if(save){delete combatSaveState[currentOpenFicheId];saveCombatSaveState();}
+   if(save){delete combatSaveState[saveId?currentOpenFicheId+'::'+saveId:currentOpenFicheId];saveCombatSaveState();}
  }
 }
 function rollCombatDice(id){
