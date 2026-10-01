@@ -904,7 +904,7 @@ function rollInlineDice(count,sides,modifier,button){
    const total=rolls[0]+rolls[1];
    const result=applyCombatPlayerDamage(dc.targetIndex,total);
    combatDamageState[id+'_'+dc.targetIndex]={actual:total};saveCombatDamageState();
-   if(out)out.innerHTML='<b>'+total+'</b> <span class="inline-dice-detail">('+rolls.join(' + ')+') → 🛡️ -'+result.tempLost+' / ❤️ -'+result.hpLost+'</span>';
+   if(out){const html='<b>'+total+'</b> <span class="inline-dice-detail">('+rolls.join(' + ')+') → 🛡️ -'+result.tempLost+' / ❤️ -'+result.hpLost+'</span>';out.innerHTML=html;setCombatTurnResult(combatDiceResultKey(id,button),html)}
    delete doubleClawState[cleanKey];delete doubleClawSaveState[cleanKey];saveDoubleClawState();saveDoubleClawSaveState();
    return;
  }
@@ -928,7 +928,7 @@ function rollInlineDice(count,sides,modifier,button){
    const result=applyCombatPlayerDamage(targetIndex,total);
    combatDamageState[currentOpenFicheId+'_'+targetIndex]={actual:total};
    saveCombatDamageState();
-   if(out)out.innerHTML+='<span class="combat-auto-damage"> → 🛡️ -'+result.tempLost+' / ❤️ -'+result.hpLost+'</span>';
+   if(out){out.innerHTML+='<span class="combat-auto-damage"> → 🛡️ -'+result.tempLost+' / ❤️ -'+result.hpLost+'</span>';setCombatTurnResult(combatDiceResultKey(currentOpenFicheId,button),out.innerHTML)}
    if(save){delete combatSaveState[currentOpenFicheId];saveCombatSaveState();}
  }
 }
