@@ -801,6 +801,11 @@ function renderFichePV(id){
    const options='<option value="">🎯 Cible</option>'+combatPlayers.map(function(p,i){return '<option value="'+i+'"'+(target===i?' selected':'')+'>'+escapeHTML(p.name)+'</option>';}).join('');
    return '<span class="combat-attack-roll" data-combat-attack-owner="'+escapeHTML(id)+'" data-combat-attack-key="'+escapeHTML(attackKey)+'"><select class="combat-attack-target-select" onchange="setCombatAttackTargetFromSelect(this)">'+options+'</select>'+inner;
  });
+ ficheCombatHtml=ficheCombatHtml.replace(/<span class="combat-save-controls" data-combat-save-id="([^"]+)">([\s\S]*?)<\/span>/g,function(match,saveId,inner){
+   const key=id+'::'+saveId, state=combatSaveState[key]||{}, selected=Number(state.targetIndex);
+   const options='<option value="">🎯 Cible</option>'+combatPlayers.map(function(p,i){return '<option value="'+i+'"'+(selected===i?' selected':'')+'>'+escapeHTML(p.name)+'</option>';}).join('');
+   return '<span class="combat-save-controls" data-combat-save-id="'+escapeHTML(saveId)+'"><select class="combat-save-target-select" onchange="setCombatSaveTarget(this)">'+options+'</select>'+inner+'</span>';
+ });
  ficheCombatHtml=ficheCombatHtml.replace(/<span class="combat-aoe-controls" data-combat-aoe-id="([^"]+)"><\/span>/g,function(match,aoeId){
    const s=getCombatAoeState(id,aoeId);
    const rows=combatPlayers.map(function(p,i){
@@ -904,12 +909,11 @@ function rollInlineDice(count,sides,modifier,button){
  if(button?.dataset?.clawBonusPair){
    const id=currentOpenFicheId;
    const pair=String(button?.dataset?.clawBonusPair||'').trim();
-   const targetIndex=getCombatTarget(id);
    const matchingKeys=Object.keys(doubleClawState).filter(k=>k.startsWith(id+'_'+pair+'_'));
-   const cleanKey=matchingKeys.length?matchingKeys[matchingKeys.length-1]:id+'_'+pair+'_'+targetIndex;
+   const cleanKey=matchingKeys.length?matchingKeys[matchingKeys.length-1]:'';
    const dc=doubleClawState[cleanKey];
    const out=button?.parentElement?.querySelector('.inline-dice-result');
-   if(id===''||!dc||dc.targetIndex===null||!dc.griffe1||!dc.griffe2){
+   if(id===''||!cleanKey||!dc||dc.targetIndex===null||!dc.griffe1||!dc.griffe2){
      if(out)out.innerHTML='<b>⚠️ Les 2 Griffes doivent avoir touché la même cible.</b>';
      return;
    }
@@ -957,7 +961,8 @@ function rollInlineDice(count,sides,modifier,button){
  const wrap=button?.closest('.combat-attack-roll');
  const attackId=String(button?.dataset?.attackId||wrap?.dataset?.combatAttackKey||'').trim();
  const attack=combatAttackState[attackId?currentOpenFicheId+'::'+attackId:currentOpenFicheId];
- const save=combatSaveState[currentOpenFicheId];
+ const saveId=String(button?.dataset?.combatSaveId||'').trim();
+ const save=combatSaveState[saveId?currentOpenFicheId+'::'+saveId:currentOpenFicheId];
  const isDamageButton=String(button?.textContent||'').toLowerCase().includes('dégâts');
  const isCritical=!!(isDamageButton&&attack?.hit&&attack?.roll===20);
  const diceCount=Math.max(1,Number(count)||1)*(isCritical?2:1);
@@ -981,7 +986,8 @@ function rollInlineDice(count,sides,modifier,button){
 function rollInlineDiceMulti(parts,button){
  const groups=Array.isArray(parts)?parts:[];
  const attack=combatAttackState[currentOpenFicheId];
- const save=combatSaveState[currentOpenFicheId];
+ const saveId=String(button?.dataset?.combatSaveId||'').trim();
+ const save=combatSaveState[saveId?currentOpenFicheId+'::'+saveId:currentOpenFicheId];
  const isDamageButton=String(button?.textContent||'').toLowerCase().includes('dégâts');
  const isCritical=!!(isDamageButton&&attack?.hit&&attack?.roll===20);
  const rolls=[];
@@ -1462,6 +1468,16 @@ function setCombatAOEResult(id,aoeId,index,result){
  if(!s.targets.includes(index))return;
  s.results[index]=result;
  saveCombatAoeSaveState();refreshOpenFichePV(id);
+}
+function setCombatSaveTarget(select){
+ const wrap=select?.closest('.combat-save-controls');if(!wrap)return;
+ const id=currentOpenFicheId,saveId=String(wrap.dataset.combatSaveId||'').trim(),index=Number(select.value);
+ if(!saveId)return;
+ const key=id+'::'+saveId;
+ const previous=combatSaveState[key]||{};
+ if(Number.isInteger(index)&&combatPlayers[index]){combatSaveState[key]={targetIndex:index,result:previous.result||''};}
+ else delete combatSaveState[key];
+ saveCombatSaveState();refreshOpenFichePV(id);
 }
 function setCombatSaveResult(result,button){
  const id=currentOpenFicheId,wrap=button?.closest('.combat-save-controls'),saveId=String(wrap?.dataset?.combatSaveId||'').trim(),select=wrap?.querySelector('.combat-save-target-select'),targetIndex=Number(select?.value),out=wrap?.querySelector('.combat-save-result');
