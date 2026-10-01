@@ -792,7 +792,8 @@ function renderFichePV(id){
      : '';
    return '<div class="combat-player-card'+cls+'" ><div class="combat-player-head"><span class="combat-player-name">👤 '+escapeHTML(name)+'</span><span class="combat-player-stats"><label>🛡️ <input type="number" min="0" max="100" value="'+(p.ca===''?'':Number(p.ca))+'" onchange="setCombatPlayerStat('+i+',\'ca\',this.value)" title="CA de '+escapeHTML(name)+'"> CA</label></span></div><div class="combat-player-stats"><label>❤️ <input type="number" min="0" value="'+cur+'" onchange="setCombatPlayerStat('+i+',\'current\',this.value)" title="PV actuels de '+escapeHTML(name)+'"> / <input type="number" min="0" value="'+max+'" onchange="setCombatPlayerStat('+i+',\'max\',this.value)" title="PV maximum de '+escapeHTML(name)+'"> PV</label><div class="combat-temp-row"><label>🛡️ PV temp.</label><input type="number" min="0" value="'+temp+'" onchange="setCombatPlayerStat('+i+',\'temp\',this.value)" title="PV temporaires de '+escapeHTML(name)+'"></div></div>'+(max!==''?'<div class="combat-player-bar"><div class="combat-player-fill" style="width:'+pct+'%"></div></div>':'')+damagePanel+'</div>'; }).join('');
  let attackCounter=0;
- const ficheSource=(fiches[ficheId]||'').replace(/<div class="combat-heal-targets">/g,'<div class="combat-heal-targets"><span class="combat-heal-result"></span>');
+ let ficheSource=(fiches[ficheId]||'').replace(/<div class="combat-heal-targets">/g,'<div class="combat-heal-targets"><span class="combat-heal-result"></span>');
+ ficheSource=ficheSource.replace(/<button data-aoe-id="([^"]+)" onclick="rollInlineDice/g,'<button data-aoe-owner="'+escapeHTML(id)+'" data-aoe-id="$1" onclick="rollInlineDice');
  let ficheCombatHtml=ficheSource.replace(/<span class="combat-attack-roll">([\s\S]*?<span class="combat-attack-result"><\/span>)/g,function(match,inner){
    const explicit=inner.match(/data-attack-id="([^"]+)"/);
    const attackKey=explicit?explicit[1]:'auto_'+attackCounter;
@@ -938,7 +939,7 @@ function rollInlineDice(count,sides,modifier,button){
 
  const aoeId=String(button?.dataset?.aoeId||'').trim();
  if(aoeId){
-   const id=currentOpenFicheId, state=getCombatAoeState(id,aoeId), out=button?.parentElement?.querySelector('.inline-dice-result');
+   const id=String(button?.dataset?.aoeOwner||currentOpenFicheId||'').trim(), state=getCombatAoeState(id,aoeId), out=button?.parentElement?.querySelector('.inline-dice-result');
    const targets=Array.isArray(state.targets)?state.targets.slice():[];
    if(!targets.length){if(out)out.innerHTML='<b>⚠️ Sélectionne au moins une cible.</b>';return;}
    const missing=targets.filter(i=>!state.results[i]);
@@ -1457,7 +1458,7 @@ function getCombatAoeState(id,aoeId){
 }
 function setCombatAoeTargetFromInput(input){
  const wrap=input?.closest('.combat-aoe-controls');if(!wrap)return;
- const id=wrap.dataset.combatAoeOwner,aoeId=wrap.dataset.combatAoeId,index=Number(input.value);
+ const id=String(wrap.dataset.combatAoeOwner||currentOpenFicheId||'').trim(),aoeId=wrap.dataset.combatAoeId,index=Number(input.value);
  const s=getCombatAoeState(id,aoeId);
  s.targets=s.targets.filter(x=>x!==index);
  if(input.checked)s.targets.push(index);
