@@ -1483,7 +1483,31 @@ function setCombatAOEResult(id,aoeId,index,result){
  const s=getCombatAoeState(id,aoeId);
  if(!s.targets.includes(index))return;
  s.results[index]=result;
- saveCombatAoeSaveState();refreshOpenFichePV(id);
+ saveCombatAoeSaveState();
+ const controls=Array.from(document.querySelectorAll('.combat-aoe-controls')).find(function(el){
+   return String(el.dataset.combatAoeOwner||'')===String(id||'') && String(el.dataset.combatAoeId||'')===String(aoeId||'');
+ });
+ if(!controls)return;
+ const row=Array.from(controls.querySelectorAll('.combat-aoe-target-row')).find(function(el){
+   const input=el.querySelector('input[type="checkbox"]');
+   return input&&Number(input.value)===Number(index);
+ });
+ if(!row)return;
+ const buttons=row.querySelectorAll('button');
+ const fail=buttons[0],success=buttons[1],out=row.querySelector('.combat-save-result');
+ if(fail&&success){
+   fail.classList.remove('save-fail','aoe-save-selected','aoe-save-fail');
+   success.classList.remove('save-success','aoe-save-selected','aoe-save-success');
+   if(result==='fail'){
+     fail.classList.add('save-fail','aoe-save-selected','aoe-save-fail');
+   }else{
+     success.classList.add('save-success','aoe-save-selected','aoe-save-success');
+   }
+ }
+ if(out){
+   out.className='combat-save-result '+(result==='fail'?'save-fail':'save-success');
+   out.innerHTML=result==='fail'?'<b>🔴 ÉCHEC</b>':'<b>🟢 RÉUSSITE</b>';
+ }
 }
 function setCombatSaveTarget(select){
  const wrap=select?.closest('.combat-save-controls');if(!wrap)return;
