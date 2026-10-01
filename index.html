@@ -795,11 +795,13 @@ function renderFichePV(id){
  const targetName=targetIndex===null?'Aucune':String(combatPlayers[targetIndex]?.name||'Aucune');
  let attackCounter=0;
  const ficheSource=(fiches[ficheId]||'').replace(/<div class="combat-heal-targets">/g,'<div class="combat-heal-targets"><span class="combat-heal-result"></span>');
- const ficheCombatHtml=ficheSource.replace(/<span class="combat-attack-roll">/g,function(){
-   const attackKey='auto_'+attackCounter++;
+ const ficheCombatHtml=ficheSource.replace(/<span class="combat-attack-roll">([\s\S]*?<span class="combat-attack-result"><\/span>)/g,function(match,inner){
+   const explicit=inner.match(/data-attack-id="([^"]+)"/);
+   const attackKey=explicit?explicit[1]:'auto_'+attackCounter;
+   attackCounter++;
    const target=getCombatAttackTarget(id,attackKey);
    const options='<option value="">🎯 Cible</option>'+combatPlayers.map(function(p,i){return '<option value="'+i+'"'+(target===i?' selected':'')+'>'+escapeHTML(p.name)+'</option>';}).join('');
-   return '<span class="combat-attack-roll" data-combat-attack-owner="'+escapeHTML(id)+'" data-combat-attack-key="'+attackKey+'"><select class="combat-attack-target-select" onchange="setCombatAttackTargetFromSelect(this)">'+options+'</select>';
+   return '<span class="combat-attack-roll" data-combat-attack-owner="'+escapeHTML(id)+'" data-combat-attack-key="'+escapeHTML(attackKey)+'"><select class="combat-attack-target-select" onchange="setCombatAttackTargetFromSelect(this)">'+options+'</select>'+inner;
  }); html+='<div class="combat-monster-sheet">'+ficheCombatHtml+'</div></div><div class="combat-right-panel">'+renderCombatTargetBanner(id)+(nekriHealingMessage[id]?'<div class="combat-healing-message">'+escapeHTML(nekriHealingMessage[id])+'</div>':'')+'<div class="combat-players-panel"><div class="combat-players-title"><strong>👥 Joueurs — PV / CA / PV temporaires / effets</strong><span class="small">Clique sur un joueur pour le cibler</span></div><div class="combat-player-grid">'+playerCards+'</div></div>'+renderInitiativeTracker(id)+'</div></div></div>';
 saveCombatPV();saveCombatPlayers();return html;
 }
