@@ -986,8 +986,9 @@ function rollInlineDice(count,sides,modifier,button){
    }
    const rolls=[];for(let i=0;i<2;i++)rolls.push(Math.floor(Math.random()*8)+1);
    const total=rolls[0]+rolls[1];
-   const result=applyPlayerDamage(dc.targetIndex,total,{refresh:false});
-   combatDamageState[id+'_'+dc.targetIndex]={actual:total};saveCombatDamageState();
+   const targetIndex=Number(s1.targetIndex);
+   const result=applyPlayerDamage(targetIndex,total,{refresh:false});
+   combatDamageState[id+'_'+targetIndex]={actual:total};saveCombatDamageState();
    const display='<b>'+total+'</b> <span class="inline-dice-detail">('+rolls.join(' + ')+') → 🛡️ -'+result.tempLost+' / ❤️ -'+result.hpLost+'</span>';
    if(out)out.innerHTML=display;
    delete doubleClawState[cleanKey];delete doubleClawSaveState[cleanKey];saveDoubleClawState();saveDoubleClawSaveState();
