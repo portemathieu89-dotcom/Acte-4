@@ -845,7 +845,7 @@ function renderFichePV(id){
      return '<div class="combat-aoe-target-row"><label><input type="checkbox" value="'+i+'" '+(selected?'checked':'')+' onchange="setCombatAoeTargetFromInput(this)"> 🎯 '+escapeHTML(p.name)+'</label><span class="combat-save-controls"><button class="'+activeClass+failClass+'" type="button" onclick="setCombatAOEResult(\''+escapeHTML(id)+'\',\''+escapeHTML(aoeId)+'\','+i+',\'fail\',this)">🔴 Échec</button><button class="'+(result==='success'?'save-success':'')+successClass+'" type="button" onclick="setCombatAOEResult(\''+escapeHTML(id)+'\',\''+escapeHTML(aoeId)+'\','+i+',\'success\',this)">🟢 Réussite</button><span class="combat-save-result '+activeClass+'">'+(result?'<b>'+resultText+'</b>':'')+'</span></span></div>';
    }).join('');
    return '<span class="combat-aoe-controls" data-combat-aoe-owner="'+escapeHTML(id)+'" data-combat-aoe-id="'+escapeHTML(aoeId)+'"><span class="combat-aoe-title">🎯 Cibles de la zone</span>'+rows+'<span class="combat-aoe-help">Sélectionne une ou plusieurs cibles, puis indique le résultat du JS pour chacune.</span></span>';
- }); html+='<div class="combat-monster-sheet">'+ficheCombatHtml+'</div></div><div class="combat-right-panel">'+(nekriHealingMessage[id]?'<div class="combat-healing-message">'+escapeHTML(nekriHealingMessage[id])+'</div>':'')+'<div class="combat-players-panel"><div class="combat-players-title"><strong>👥 Joueurs — PV / CA / PV temporaires / effets</strong></div><div class="combat-player-grid">'+playerCards+'</div></div>'+renderInitiativeTracker(id)+'</div></div></div>';
+ }); ficheCombatHtml=wrapCombatMonsterSections(id,ficheCombatHtml); html+='<div class="combat-monster-sheet">'+ficheCombatHtml+'</div></div><div class="combat-right-panel">'+(nekriHealingMessage[id]?'<div class="combat-healing-message">'+escapeHTML(nekriHealingMessage[id])+'</div>':'')+'<div class="combat-players-panel"><div class="combat-players-title"><strong>👥 Joueurs — PV / CA / PV temporaires / effets</strong></div><div class="combat-player-grid">'+playerCards+'</div></div>'+renderInitiativeTracker(id)+'</div></div></div>';
 saveCombatPV();saveCombatPlayers();return html;
 }
 let combatTurnResults={};
@@ -1773,7 +1773,7 @@ function focusActiveInitiativeEnemy(id){
    if(!fiche)return;
    const block=fiche.querySelector('.combat-monster-action-block[data-fiche-enemy-index="'+index+'"]');
    if(!block)return;
-   fiche.querySelectorAll('.fiche-enemy-block.initiative-turn-focus').forEach(function(el){el.classList.remove('initiative-turn-focus')});
+   fiche.querySelectorAll('.initiative-turn-focus').forEach(function(el){el.classList.remove('initiative-turn-focus')});
    block.classList.add('initiative-turn-focus');
    block.scrollIntoView({behavior:'smooth',block:'nearest'});
  },0);
