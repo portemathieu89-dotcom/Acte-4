@@ -814,7 +814,7 @@ function renderFichePV(id){
      const result=s.results[i]||'';
      const resultText=result==='fail'?'🔴 Échec':result==='success'?'🟢 Réussite':'—';
      const activeClass=result==='fail'?'save-fail':result==='success'?'save-success':''; const failClass=result==='fail'?' aoe-save-selected aoe-save-fail':''; const successClass=result==='success'?' aoe-save-selected aoe-save-success':'';
-     return '<div class="combat-aoe-target-row"><label><input type="checkbox" value="'+i+'" '+(selected?'checked':'')+' onchange="setCombatAoeTargetFromInput(this)"> 🎯 '+escapeHTML(p.name)+'</label><span class="combat-save-controls"><button class="'+activeClass+failClass+'" type="button" onclick="setCombatAOEResult(\''+escapeHTML(id)+'\',\''+escapeHTML(aoeId)+'\','+i+',\'fail\')">🔴 Échec</button><button class="'+(result==='success'?'save-success':'')+successClass+'" type="button" onclick="setCombatAOEResult(\''+escapeHTML(id)+'\',\''+escapeHTML(aoeId)+'\','+i+',\'success\')">🟢 Réussite</button><span class="combat-save-result '+activeClass+'">'+(result?'<b>'+resultText+'</b>':'')+'</span></span></div>';
+     return '<div class="combat-aoe-target-row"><label><input type="checkbox" value="'+i+'" '+(selected?'checked':'')+' onchange="setCombatAoeTargetFromInput(this)"> 🎯 '+escapeHTML(p.name)+'</label><span class="combat-save-controls"><button class="'+activeClass+failClass+'" type="button" onclick="setCombatAOEResult(\''+escapeHTML(id)+'\',\''+escapeHTML(aoeId)+'\','+i+',\'fail\',this)">🔴 Échec</button><button class="'+(result==='success'?'save-success':'')+successClass+'" type="button" onclick="setCombatAOEResult(\''+escapeHTML(id)+'\',\''+escapeHTML(aoeId)+'\','+i+',\'success\',this)">🟢 Réussite</button><span class="combat-save-result '+activeClass+'">'+(result?'<b>'+resultText+'</b>':'')+'</span></span></div>';
    }).join('');
    return '<span class="combat-aoe-controls" data-combat-aoe-owner="'+escapeHTML(id)+'" data-combat-aoe-id="'+escapeHTML(aoeId)+'"><span class="combat-aoe-title">🎯 Cibles de la zone</span>'+rows+'<span class="combat-aoe-help">Sélectionne une ou plusieurs cibles, puis indique le résultat du JS pour chacune.</span></span>';
  }); html+='<div class="combat-monster-sheet">'+ficheCombatHtml+'</div></div><div class="combat-right-panel">'+(nekriHealingMessage[id]?'<div class="combat-healing-message">'+escapeHTML(nekriHealingMessage[id])+'</div>':'')+'<div class="combat-players-panel"><div class="combat-players-title"><strong>👥 Joueurs — PV / CA / PV temporaires / effets</strong></div><div class="combat-player-grid">'+playerCards+'</div></div>'+renderInitiativeTracker(id)+'</div></div></div>';
@@ -971,6 +971,8 @@ function rollInlineDice(count,sides,modifier,button){
    });
    saveCombatPlayers();saveCombatDamageState();
    if(out)out.innerHTML='<b>'+rawTotal+'</b> <span class="inline-dice-detail">('+rolls.join(' + ')+') — jet partagé</span><div class="combat-auto-damage">'+details.join('<br>')+'</div>';
+   saveCombatPlayers();saveCombatDamageState();
+   refreshOpenFichePV(id,true);
    sendPlayerHPToTV(dungeonTVMode?'persistent':'flash',dungeonTVMode?0:4000);
    return;
  }
@@ -1477,32 +1479,22 @@ function setCombatAoeTargetFromInput(input){
  const s=getCombatAoeState(id,aoeId);
  s.targets=s.targets.filter(x=>x!==index);
  if(input.checked)s.targets.push(index);
- saveCombatAoeSaveState();refreshOpenFichePV(id);
+ saveCombatAoeSaveState();
 }
-function setCombatAOEResult(id,aoeId,index,result){
+function setCombatAOEResult(id,aoeId,index,result,button){
  const s=getCombatAoeState(id,aoeId);
  if(!s.targets.includes(index))s.targets.push(index);
  s.results[index]=result;
  saveCombatAoeSaveState();
- const controls=Array.from(document.querySelectorAll('.combat-aoe-controls')).find(function(el){
-   return String(el.dataset.combatAoeOwner||'')===String(id||'') && String(el.dataset.combatAoeId||'')===String(aoeId||'');
- });
- if(!controls)return;
- const row=Array.from(controls.querySelectorAll('.combat-aoe-target-row')).find(function(el){
-   const input=el.querySelector('input[type="checkbox"]');
-   return input&&Number(input.value)===Number(index);
- });
+ const row=button?.closest('.combat-aoe-target-row');
  if(!row)return;
  const buttons=row.querySelectorAll('button');
  const fail=buttons[0],success=buttons[1],out=row.querySelector('.combat-save-result');
  if(fail&&success){
    fail.classList.remove('save-fail','aoe-save-selected','aoe-save-fail');
    success.classList.remove('save-success','aoe-save-selected','aoe-save-success');
-   if(result==='fail'){
-     fail.classList.add('save-fail','aoe-save-selected','aoe-save-fail');
-   }else{
-     success.classList.add('save-success','aoe-save-selected','aoe-save-success');
-   }
+   if(result==='fail')fail.classList.add('save-fail','aoe-save-selected','aoe-save-fail');
+   else success.classList.add('save-success','aoe-save-selected','aoe-save-success');
  }
  if(out){
    out.className='combat-save-result '+(result==='fail'?'save-fail':'save-success');
