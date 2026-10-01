@@ -1577,8 +1577,11 @@ function setCombatSaveTarget(select){
  if(!saveId)return;
  const key=id+'::'+saveId;
  const previous=combatSaveState[key]||{};
- if(Number.isInteger(index)&&combatPlayers[index]){combatSaveState[key]={targetIndex:index,result:previous.result||''};}
- else delete combatSaveState[key];
+ const oldTarget=Number(previous.targetIndex);
+ if(Number.isInteger(index)&&combatPlayers[index]){
+   const sameTarget=Number.isInteger(oldTarget)&&oldTarget===index;
+   combatSaveState[key]={targetIndex:index,result:sameTarget?(previous.result||''):''};
+ }else delete combatSaveState[key];
  saveCombatSaveState();refreshOpenFichePV(id);
 }
 function setCombatSaveResult(result,button){
