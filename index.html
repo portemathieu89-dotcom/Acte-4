@@ -939,10 +939,25 @@ function rollInlineDice(count,sides,modifier,button){
 
  const aoeId=String(button?.dataset?.aoeId||'').trim();
  if(aoeId){
-   const id=String(button?.dataset?.aoeOwner||currentOpenFicheId||'').trim(), state=getCombatAoeState(id,aoeId), out=button?.parentElement?.querySelector('.inline-dice-result');
-   const targets=Array.isArray(state.targets)?state.targets.slice():[];
+   const id=String(button?.dataset?.aoeOwner||currentOpenFicheId||'').trim();
+   const out=button?.parentElement?.querySelector('.inline-dice-result');
+   const controls=document.querySelector('.combat-aoe-controls[data-combat-aoe-owner="'+id+'"][data-combat-aoe-id="'+aoeId+'"]');
+   const state=getCombatAoeState(id,aoeId);
+   const domTargets=controls?Array.from(controls.querySelectorAll('input[type="checkbox"]:checked')).map(function(input){return Number(input.value);}).filter(function(i){return Number.isInteger(i)&&combatPlayers[i];}):[];
+   const targets=domTargets.length?domTargets:Array.isArray(state.targets)?state.targets.slice():[];
+   const domResults={};
+   if(controls){
+     Array.from(controls.querySelectorAll('.combat-aoe-target-row')).forEach(function(row){
+       const input=row.querySelector('input[type="checkbox"]');if(!input||!input.checked)return;
+       const index=Number(input.value);
+       const chosen=row.querySelector('button.aoe-save-selected');
+       if(chosen)domResults[index]=chosen.classList.contains('aoe-save-success')?'success':chosen.classList.contains('aoe-save-fail')?'fail':'';
+     });
+   }
+   targets.forEach(function(index){if(domResults[index])state.results[index]=domResults[index];});
+   state.targets=targets;saveCombatAoeSaveState();
+   const missing=targets.filter(function(i){return !state.results[i];});
    if(!targets.length){if(out)out.innerHTML='<b>⚠️ Sélectionne au moins une cible.</b>';return;}
-   const missing=targets.filter(i=>!state.results[i]);
    if(missing.length){if(out)out.innerHTML='<b>⚠️ Indique Échec ou Réussite pour chaque cible sélectionnée.</b>';return;}
    const rolls=[];for(let i=0;i<Math.max(1,Number(count)||1);i++)rolls.push(Math.floor(Math.random()*Math.max(2,Number(sides)||20))+1);
    const rawTotal=rolls.reduce((a,b)=>a+b,0)+Number(modifier||0);
