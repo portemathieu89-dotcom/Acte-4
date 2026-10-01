@@ -1337,7 +1337,10 @@ const alchemyPotions=[
  {name:'Potion d\'invisibilité',price:1000,effect:'Rend invisible pendant 1 heure. L\'effet prend fin si le personnage attaque ou lance un sort.'},
  {name:'Potion d\'invulnérabilité',price:2500,effect:'Résistance à tous les dégâts pendant 1 minute.'},
  {name:'Potion de vitesse',price:1500,effect:'Effet de Hâte pendant 1 minute, sans concentration.',term:'Hâte',tip:'La créature voit sa vitesse doublée, gagne +2 à sa CA, a l’avantage aux jets de sauvegarde de Dextérité et obtient une action supplémentaire à chaque tour, limitée à certaines actions. À la fin, elle ne peut plus bouger ni agir pendant son tour suivant. Ici, l’effet dure 1 minute et ne demande pas de concentration.'},
- {name:'Potion de vitalité',price:2000,effect:'Supprime l\'épuisement et les maladies/poisons et améliore fortement la récupération.'}
+ {name:'Potion de vitalité',price:2000,effect:'Supprime l\'épuisement et les maladies/poisons et améliore fortement la récupération.'},
+ {name:'Pierre de feu',price:200,displayPrice:'200 PO',effect:'Pierre rituelle nécessaire au rituel des Mok\'Ra.',icon:'🔥'},
+ {name:'Pierre de vent',price:200,displayPrice:'200 PO',effect:'Pierre rituelle nécessaire au rituel des Mok\'Ra.',icon:'🌪️'},
+ {name:'Pierre de pierre',price:200,displayPrice:'200 PO',effect:'Pierre rituelle nécessaire au rituel des Mok\'Ra.',icon:'🪨'}
 ];
 window.alchemyPotions=alchemyPotions;
 function renderAlchemyShop(){
@@ -1349,7 +1352,7 @@ function renderAlchemyShop(){
  grid.innerHTML=alchemyPotions.map((x,j)=>{
    let effect=escapeHTML(x.effect);
    if(x.term) effect=effect.replace(escapeHTML(x.term),`<span class="effect-term" data-tooltip="${escapeHTML(x.tip)}">${escapeHTML(x.term)}</span>`);
-   return `<div class="shop-card"><h3><span class="potion-name-wrap"><img class="potion-icon" src="${getPotionIcon(x.name)}" alt="">${escapeHTML(x.name)}</span></h3><div class="shop-price">${x.price.toLocaleString('fr-FR')} PO</div><div class="shop-effect">${effect}</div><div class="shop-buy"><button class="link" onclick="buyAlchemyPotion(${j})">🛒 Acheter</button></div></div>`;
+   const icon=x.icon?`<span class="potion-icon" style="display:inline-flex;align-items:center;justify-content:center;font-size:28px;width:38px;height:38px">${x.icon}</span>`:`<img class="potion-icon" src="${getPotionIcon(x.name)}" alt="">`; return `<div class="shop-card"><h3><span class="potion-name-wrap">${icon}${escapeHTML(x.name)}</span></h3><div class="shop-price">${(x.displayPrice||x.price.toLocaleString('fr-FR')+' PO')}</div><div class="shop-effect">${effect}</div><div class="shop-buy"><button class="link" onclick="buyAlchemyPotion(${j})">🛒 Acheter</button></div></div>`;
  }).join('');
 }
 function openAlchemyTV(){openTVPage('boutique_alchimie_tv.html',"Boutique d'alchimie")}
