@@ -799,7 +799,7 @@ function renderFichePV(id){
    const attackKey='auto_'+attackCounter++;
    const target=getCombatAttackTarget(id,attackKey);
    const options='<option value="">🎯 Cible</option>'+combatPlayers.map(function(p,i){return '<option value="'+i+'"'+(target===i?' selected':'')+'>'+escapeHTML(p.name)+'</option>';}).join('');
-   return '<span class="combat-attack-roll" data-combat-attack-key="'+attackKey+'"><select class="combat-attack-target-select" onchange="setCombatAttackTarget(\\''+escapeHTML(id)+'\\',\\''+attackKey+'\\',this.value)">'+options+'</select>';
+   return '<span class="combat-attack-roll" data-combat-attack-owner="'+escapeHTML(id)+'" data-combat-attack-key="'+attackKey+'"><select class="combat-attack-target-select" onchange="setCombatAttackTargetFromSelect(this)">'+options+'</select>';
  }); html+='<div class="combat-monster-sheet">'+ficheCombatHtml+'</div></div><div class="combat-right-panel">'+renderCombatTargetBanner(id)+(nekriHealingMessage[id]?'<div class="combat-healing-message">'+escapeHTML(nekriHealingMessage[id])+'</div>':'')+'<div class="combat-players-panel"><div class="combat-players-title"><strong>👥 Joueurs — PV / CA / PV temporaires / effets</strong><span class="small">Clique sur un joueur pour le cibler</span></div><div class="combat-player-grid">'+playerCards+'</div></div>'+renderInitiativeTracker(id)+'</div></div></div>';
 saveCombatPV();saveCombatPlayers();return html;
 }
@@ -864,7 +864,8 @@ function healNekriTarget(id,index,diceCount,diceSides,modifier,button){
 }
 function rollInlineAttack(modifier,button){
  const id=currentOpenFicheId;
- const attackId=String(button?.dataset?.attackId||button?.dataset?.combatAttackKey||'').trim();
+ const wrap=button?.closest('.combat-attack-roll');
+ const attackId=String(button?.dataset?.attackId||wrap?.dataset?.combatAttackKey||'').trim();
  const targetIndex=getCombatAttackTarget(id,attackId);
  const out=button?.parentElement?.querySelector('.combat-attack-result');
  const attackStateKey=attackId?id+'::'+attackId:id;
@@ -920,7 +921,8 @@ function rollInlineDice(count,sides,modifier,button){
    return;
  }
 
- const attackId=String(button?.dataset?.attackId||button?.dataset?.combatAttackKey||'').trim();
+ const wrap=button?.closest('.combat-attack-roll');
+ const attackId=String(button?.dataset?.attackId||wrap?.dataset?.combatAttackKey||'').trim();
  const attack=combatAttackState[attackId?currentOpenFicheId+'::'+attackId:currentOpenFicheId];
  const save=combatSaveState[currentOpenFicheId];
  const isDamageButton=String(button?.textContent||'').toLowerCase().includes('dégâts');
@@ -1434,6 +1436,11 @@ function setCombatAttackTarget(id,attackKey,index){
  const key=String(id||'')+'::'+String(attackKey||'');
  combatAttackTargets[key]=index;saveCombatAttackTargets();
  refreshOpenFichePV(id);
+}
+function setCombatAttackTargetFromSelect(select){
+ const wrap=select?.closest('.combat-attack-roll');
+ if(!wrap)return;
+ setCombatAttackTarget(wrap.dataset.combatAttackOwner,wrap.dataset.combatAttackKey,select.value);
 }
 function sendPlayerHPToTV(mode='flash',duration=4000){
  const players=combatPlayers.slice(0,5).filter((p,i)=>isDestrierActive(i)).map(p=>({
