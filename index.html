@@ -889,7 +889,7 @@ function rollInlineAttack(modifier,button){
    const parts=[];
    s.targets.forEach(function(index){
      const total=s.results[index]==='success'?Math.floor(baseTotal/2):baseTotal;
-     const result=applyCombatPlayerDamage(index,total);
+     const result=applyPlayerDamage(index,total,{refresh:false});
      combatDamageState[id+'_'+index]={actual:total};parts.push(escapeHTML(combatPlayers[index]?.name||'Joueur')+' -'+total+' ('+(s.results[index]==='success'?'demi-dégâts':'dégâts complets')+')');
    });
    saveCombatDamageState();
@@ -1527,7 +1527,7 @@ function applyPlayerDamage(index,damage,options){
  const hpLost=hpBefore===null?0:Math.min(hpBefore,remaining);
  if(hpBefore!==null)p.current=hpBefore-hpLost;
  saveCombatPlayers();
- if(typeof refreshOpenFichePV==='function'&&currentOpenFicheId)refreshOpenFichePV(currentOpenFicheId);
+ if(options?.refresh!==false&&typeof refreshOpenFichePV==='function'&&currentOpenFicheId)refreshOpenFichePV(currentOpenFicheId);
  if(options&&options.tvFlash)sendPlayerHPToTV(dungeonTVMode?'persistent':'flash',dungeonTVMode?0:4000);
  return {tempLost,hpLost,total:tempLost+hpLost};
 }
