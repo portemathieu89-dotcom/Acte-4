@@ -986,10 +986,17 @@ function rollInlineDice(count,sides,modifier,button){
    }
    const rolls=[];for(let i=0;i<2;i++)rolls.push(Math.floor(Math.random()*8)+1);
    const total=rolls[0]+rolls[1];
-   const result=applyCombatPlayerDamage(dc.targetIndex,total);
+   const result=applyPlayerDamage(dc.targetIndex,total,{refresh:false});
    combatDamageState[id+'_'+dc.targetIndex]={actual:total};saveCombatDamageState();
-   if(out)out.innerHTML='<b>'+total+'</b> <span class="inline-dice-detail">('+rolls.join(' + ')+') → 🛡️ -'+result.tempLost+' / ❤️ -'+result.hpLost+'</span>';
+   const display='<b>'+total+'</b> <span class="inline-dice-detail">('+rolls.join(' + ')+') → 🛡️ -'+result.tempLost+' / ❤️ -'+result.hpLost+'</span>';
+   if(out)out.innerHTML=display;
    delete doubleClawState[cleanKey];delete doubleClawSaveState[cleanKey];saveDoubleClawState();saveDoubleClawSaveState();
+   refreshOpenFichePV(id);
+   setTimeout(function(){
+     const btn=document.querySelector('.fiche-combat [data-claw-bonus-pair="'+pair+'"]');
+     const resultOut=btn?.parentElement?.querySelector('.inline-dice-result');
+     if(resultOut)resultOut.innerHTML=display;
+   },0);
    return;
  }
 
@@ -1009,9 +1016,16 @@ function rollInlineDice(count,sides,modifier,button){
    const last=hitStates[hitStates.length-1];
    const targetIndex=Number(last.targetIndex);
    const roll=Math.floor(Math.random()*6)+1;
-   const result=applyCombatPlayerDamage(targetIndex,roll);
+   const result=applyPlayerDamage(targetIndex,roll,{refresh:false});
    combatDamageState[id+'_'+targetIndex]={actual:roll};saveCombatDamageState();
-   if(out)out.innerHTML='<b>'+roll+'</b> <span class="inline-dice-detail">('+roll+' sur 1d6 nécrotique) → 🛡️ -'+result.tempLost+' / ❤️ -'+result.hpLost+'</span>';
+   const display='<b>'+roll+'</b> <span class="inline-dice-detail">('+roll+' sur 1d6 nécrotique) → 🛡️ -'+result.tempLost+' / ❤️ -'+result.hpLost+'</span>';
+   if(out)out.innerHTML=display;
+   refreshOpenFichePV(id);
+   setTimeout(function(){
+     const btn=document.querySelector('.fiche-combat [data-claw-passive-pair="'+passivePair+'"]');
+     const resultOut=btn?.parentElement?.querySelector('.inline-dice-result');
+     if(resultOut)resultOut.innerHTML=display;
+   },0);
    return;
  }
 
