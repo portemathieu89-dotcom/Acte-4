@@ -801,7 +801,7 @@ function renderFichePV(id){
    const options='<option value="">🎯 Cible</option>'+combatPlayers.map(function(p,i){return '<option value="'+i+'"'+(target===i?' selected':'')+'>'+escapeHTML(p.name)+'</option>';}).join('');
    return '<span class="combat-attack-roll" data-combat-attack-owner="'+escapeHTML(id)+'" data-combat-attack-key="'+escapeHTML(attackKey)+'"><select class="combat-attack-target-select" onchange="setCombatAttackTargetFromSelect(this)">'+options+'</select>'+inner;
  });
- ficheCombatHtml=ficheCombatHtml.replace(/<span class="combat-save-controls" data-combat-save-id="([^"]+)">(<button[\\s\\S]*?<span class="combat-save-result"><\\/span>)<\\/span>/g,function(match,saveId,inner){
+ ficheCombatHtml=ficheCombatHtml.replace(/<span class="combat-save-controls" data-combat-save-id="([^"]+)">(<button[\s\S]*?<span class="combat-save-result"><\/span>)<\/span>/g,function(match,saveId,inner){
    const key=id+'::'+saveId, state=combatSaveState[key]||{}, selected=Number(state.targetIndex);
    const options='<option value="">🎯 Cible</option>'+combatPlayers.map(function(p,i){return '<option value="'+i+'"'+(selected===i?' selected':'')+'>'+escapeHTML(p.name)+'</option>';}).join('');
    return '<span class="combat-save-controls" data-combat-save-id="'+escapeHTML(saveId)+'"><select class="combat-save-target-select" onchange="setCombatSaveTarget(this)">'+options+'</select>'+inner+'</span>';
