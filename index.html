@@ -923,6 +923,25 @@ function rollInlineAttack(modifier,button){
    saveDoubleClawState();
  }
 }
+function getCombatAttackStateForDamageButton(button){
+ const id=currentOpenFicheId;
+ const explicit=String(button?.dataset?.attackId||'').trim();
+ if(explicit){
+   const state=combatAttackState[id+'::'+explicit];
+   if(state)return state;
+ }
+ const p=button?.closest('p,.combat-attack-line');
+ if(!p)return null;
+ const rolls=Array.from(p.querySelectorAll('.combat-attack-roll'));
+ for(let i=rolls.length-1;i>=0;i--){
+   const key=String(rolls[i].dataset?.combatAttackKey||'').trim();
+   if(key){
+     const state=combatAttackState[id+'::'+key];
+     if(state)return state;
+   }
+ }
+ return null;
+}
 function rollInlineDice(count,sides,modifier,button){
  const buttonLabel=String(button?.textContent||'').toLowerCase();
  if(button?.dataset?.clawBonusPair){
@@ -996,7 +1015,7 @@ function rollInlineDice(count,sides,modifier,button){
  }
  const wrap=button?.closest('.combat-attack-roll');
  const attackId=String(button?.dataset?.attackId||wrap?.dataset?.combatAttackKey||'').trim();
- const attack=combatAttackState[attackId?currentOpenFicheId+'::'+attackId:currentOpenFicheId];
+ const attack=getCombatAttackStateForDamageButton(button);
  const saveId=String(button?.dataset?.combatSaveId||'').trim();
  const save=combatSaveState[saveId?currentOpenFicheId+'::'+saveId:currentOpenFicheId];
  const isDamageButton=String(button?.textContent||'').toLowerCase().includes('dégâts');
@@ -1021,7 +1040,7 @@ function rollInlineDice(count,sides,modifier,button){
 }
 function rollInlineDiceMulti(parts,button){
  const groups=Array.isArray(parts)?parts:[];
- const attack=combatAttackState[currentOpenFicheId];
+ const attack=getCombatAttackStateForDamageButton(button);
  const saveId=String(button?.dataset?.combatSaveId||'').trim();
  const save=combatSaveState[saveId?currentOpenFicheId+'::'+saveId:currentOpenFicheId];
  const isDamageButton=String(button?.textContent||'').toLowerCase().includes('dégâts');
