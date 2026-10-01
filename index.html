@@ -690,7 +690,7 @@ function applyAutomaticInitiativeEffect(combatId,playerIndex,effectId,turns,sour
  const src=String(source||'');
  const existing=p.effects.findIndex(e=>e.autoSource===src&&e.id===effectId);
  if(existing>=0)p.effects.splice(existing,1);
- p.effects.push({id:effectId,turns:Math.max(0,Number(turns)||0),permanent:!turns,level:false,autoSource:src});
+ const duration=Math.max(0,Number(turns)||0);p.effects.push({id:effectId,turns:duration,permanent:!duration,level:false,autoSource:src,autoSkipCurrentTurn:duration>0&&state.current===p.key});
  saveInitiative();
 }
 function removeAutomaticInitiativeEffect(combatId,playerIndex,effectId,source){
@@ -1692,7 +1692,7 @@ function rollCreatureInitiative(id,key){
 }
 function decrementInitiativeEffects(id,key){
  const state=ensureInitiative(id),p=state&&state.participants.find(x=>x.key===key);if(!p||!Array.isArray(p.effects))return;
- p.effects=p.effects.map(e=>{if(e.level)return e;const t=Number(e.turns)||0;return t>0?{...e,turns:t-1}:e}).filter(e=>e.level||e.turns!==0||e.permanent);
+ p.effects=p.effects.map(e=>{if(e.level)return e;const t=Number(e.turns)||0;if(t<=0)return e;if(e.autoSource&&e.autoSkipCurrentTurn)return {...e,autoSkipCurrentTurn:false};return {...e,turns:t-1};}).filter(e=>e.level||e.turns!==0||e.permanent);
  saveInitiative();
 }
 function clearCombatAoeTurnState(id){
@@ -1700,11 +1700,7 @@ function clearCombatAoeTurnState(id){
  Object.keys(combatAoeSaveState).forEach(function(key){
    if(key.startsWith(prefix))delete combatAoeSaveState[key];
  });
- const state=ensureInitiative(id);
- if(state)state.participants.forEach(function(p){
-   if(Array.isArray(p.effects))p.effects=p.effects.filter(function(e){return !e.autoSource||!e.autoSource.startsWith('aoe:'+id+':');});
- });
- saveInitiative();saveCombatAoeSaveState();
+ saveCombatAoeSaveState();
 }
 function nextInitiative(id,direction=1){
  const state=ensureInitiative(id);if(!state)return;
