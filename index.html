@@ -683,6 +683,24 @@ const combatEffects=[
  {id:'enrage',name:'Enragé',icon:'😡',desc:'Effet personnalisé. La cible bénéficie des bonus définis par sa rage pendant la durée indiquée.'}
 ];
 function getInitiativeEffect(id){return combatEffects.find(e=>e.id===id)||{name:id,icon:'❔',desc:'Effet personnalisé.'}}
+function applyAutomaticInitiativeEffect(combatId,playerIndex,effectId,turns,source){
+ const state=ensureInitiative(combatId),p=state&&state.participants.find(x=>x.key==='player_'+playerIndex);
+ const def=getInitiativeEffect(effectId);if(!p||!def)return;
+ if(!Array.isArray(p.effects))p.effects=[];
+ const src=String(source||'');
+ const existing=p.effects.findIndex(e=>e.autoSource===src&&e.id===effectId);
+ if(existing>=0)p.effects.splice(existing,1);
+ p.effects.push({id:effectId,turns:Math.max(0,Number(turns)||0),permanent:!turns,level:false,autoSource:src});
+ saveInitiative();
+}
+function removeAutomaticInitiativeEffect(combatId,playerIndex,effectId,source){
+ const state=ensureInitiative(combatId),p=state&&state.participants.find(x=>x.key==='player_'+playerIndex);
+ if(!p||!Array.isArray(p.effects))return;
+ const src=String(source||'');
+ p.effects=p.effects.filter(e=>!(e.id===effectId&&e.autoSource===src));
+ saveInitiative();
+}
+
 function addInitiativeEffect(id,key,effectId){
  const state=ensureInitiative(id),p=state&&state.participants.find(x=>x.key===key),def=getInitiativeEffect(effectId);if(!p||!def)return;
  let turns=0;
@@ -1464,6 +1482,11 @@ function renderDpsMeter(id){
 function saveCombatDamageState(){localStorage.setItem('theLastHeartCombatDamageState',JSON.stringify(combatDamageState))}
 function saveCombatSaveState(){localStorage.setItem('theLastHeartCombatSaveState',JSON.stringify(combatSaveState))}
 let combatAoeSaveState=JSON.parse(localStorage.getItem('theLastHeartCombatAoeSaveState')||'{}')||{};
+const combatAoeAutomaticEffects={
+ cri_damnes:{effectId:'effraye',turns:1},
+ etreinte_ames:{effectId:'entrave',turns:1}
+};
+
 function saveCombatAoeSaveState(){localStorage.setItem('theLastHeartCombatAoeSaveState',JSON.stringify(combatAoeSaveState))}
 function getCombatAoeState(id,aoeId){
  const key=String(id||'')+'::'+String(aoeId||'');
@@ -1486,6 +1509,13 @@ function setCombatAOEResult(id,aoeId,index,result,button){
  if(!s.targets.includes(index))s.targets.push(index);
  s.results[index]=result;
  saveCombatAoeSaveState();
+ const autoEffect=combatAoeAutomaticEffects[aoeId];
+ if(autoEffect){
+   const source='aoe:'+id+':'+aoeId+':'+index;
+   if(result==='fail')applyAutomaticInitiativeEffect(id,index,autoEffect.effectId,autoEffect.turns,source);
+   else removeAutomaticInitiativeEffect(id,index,autoEffect.effectId,source);
+   saveInitiative();
+ }
  const row=button?.closest('.combat-aoe-target-row');
  if(!row)return;
  const buttons=row.querySelectorAll('button');
@@ -1659,7 +1689,11 @@ function clearCombatAoeTurnState(id){
  Object.keys(combatAoeSaveState).forEach(function(key){
    if(key.startsWith(prefix))delete combatAoeSaveState[key];
  });
- saveCombatAoeSaveState();
+ const state=ensureInitiative(id);
+ if(state)state.participants.forEach(function(p){
+   if(Array.isArray(p.effects))p.effects=p.effects.filter(function(e){return !e.autoSource||!e.autoSource.startsWith('aoe:'+id+':');});
+ });
+ saveInitiative();saveCombatAoeSaveState();
 }
 function nextInitiative(id,direction=1){
  const state=ensureInitiative(id);if(!state)return;
