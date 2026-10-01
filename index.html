@@ -877,47 +877,6 @@ function healNekriTarget(id,index,diceCount,diceSides,modifier,button){
 }
 function rollInlineAttack(modifier,button){
  const id=currentOpenFicheId;
- const aoeId=String(button?.dataset?.aoeId||button?.closest('.combat-aoe-controls')?.dataset?.combatAoeId||'').trim();
- if(aoeId){
-   const id=currentOpenFicheId,s=getCombatAoeState(id,aoeId);
-   if(!s.targets.length){const out=button?.parentElement?.querySelector('.inline-dice-result');if(out)out.innerHTML='<b>⚠️ Sélectionne au moins une cible.</b>';return;}
-   const missing=s.targets.filter(i=>!s.results[i]);
-   if(missing.length){const out=button?.parentElement?.querySelector('.inline-dice-result');if(out)out.innerHTML='<b>⚠️ Indique la réussite ou l’échec du JS pour chaque cible.</b>';return;}
-   const rolls=[];for(let i=0;i<count;i++)rolls.push(Math.floor(Math.random()*sides)+1);
-   const baseTotal=rolls.reduce((a,b)=>a+b,0)+Number(modifier||0);
-   const out=button?.parentElement?.querySelector('.inline-dice-result');
-   const parts=[];
-   s.targets.forEach(function(index){
-     const total=s.results[index]==='success'?Math.floor(baseTotal/2):baseTotal;
-     const result=applyPlayerDamage(index,total,{refresh:false});
-     combatDamageState[id+'_'+index]={actual:total};parts.push(escapeHTML(combatPlayers[index]?.name||'Joueur')+' -'+total+' ('+(s.results[index]==='success'?'demi-dégâts':'dégâts complets')+')');
-   });
-   saveCombatDamageState();
-   if(out)out.innerHTML='<b>'+baseTotal+'</b> <span class="inline-dice-detail">('+rolls.join(' + ')+(modifier?(' '+(modifier>0?'+':'-')+' '+Math.abs(modifier)):'')+') → '+parts.join(' · ')+'</span>';
-   return;
- }
- const aoeId=String(button?.dataset?.aoeId||'').trim();
- if(aoeId){
-   const id=currentOpenFicheId, state=getCombatAoeState(id,aoeId), out=button?.parentElement?.querySelector('.inline-dice-result');
-   const targets=Array.isArray(state.targets)?state.targets.slice():[];
-   if(!targets.length){if(out)out.innerHTML='<b>⚠️ Sélectionne au moins une cible.</b>';return;}
-   const missing=targets.filter(i=>!state.results[i]);
-   if(missing.length){if(out)out.innerHTML='<b>⚠️ Indique Échec ou Réussite pour chaque cible sélectionnée.</b>';return;}
-   const rolls=[];for(let i=0;i<Math.max(1,Number(count)||1);i++)rolls.push(Math.floor(Math.random()*Math.max(2,Number(sides)||20))+1);
-   const rawTotal=rolls.reduce((a,b)=>a+b,0)+Number(modifier||0);
-   const details=[];
-   targets.forEach(index=>{
-     const half=state.results[index]==='success';
-     const damage=half?Math.floor(rawTotal/2):rawTotal;
-     const result=applyPlayerDamage(index,damage,{refresh:false,tvFlash:false});
-     combatDamageState[id+'_'+index]={actual:damage};saveCombatDamageState();
-     details.push(escapeHTML(combatPlayers[index]?.name||'Joueur')+' : <b>'+damage+'</b>'+(half?' 🟢 demi-dégâts':' 🔴 dégâts complets')+' → 🛡️ -'+result.tempLost+' / ❤️ -'+result.hpLost);
-   });
-   saveCombatPlayers();saveCombatDamageState();
-   if(out)out.innerHTML='<b>'+rawTotal+'</b> <span class="inline-dice-detail">('+rolls.join(' + ')+') — jet partagé</span><div class="combat-auto-damage">'+details.join('<br>')+'</div>';
-   sendPlayerHPToTV(dungeonTVMode?'persistent':'flash',dungeonTVMode?0:4000);
-   return;
- }
  const wrap=button?.closest('.combat-attack-roll');
  const attackId=String(button?.dataset?.attackId||wrap?.dataset?.combatAttackKey||'').trim();
  const targetIndex=getCombatAttackTarget(id,attackId);
@@ -975,6 +934,28 @@ function rollInlineDice(count,sides,modifier,button){
    return;
  }
 
+ const aoeId=String(button?.dataset?.aoeId||'').trim();
+ if(aoeId){
+   const id=currentOpenFicheId, state=getCombatAoeState(id,aoeId), out=button?.parentElement?.querySelector('.inline-dice-result');
+   const targets=Array.isArray(state.targets)?state.targets.slice():[];
+   if(!targets.length){if(out)out.innerHTML='<b>⚠️ Sélectionne au moins une cible.</b>';return;}
+   const missing=targets.filter(i=>!state.results[i]);
+   if(missing.length){if(out)out.innerHTML='<b>⚠️ Indique Échec ou Réussite pour chaque cible sélectionnée.</b>';return;}
+   const rolls=[];for(let i=0;i<Math.max(1,Number(count)||1);i++)rolls.push(Math.floor(Math.random()*Math.max(2,Number(sides)||20))+1);
+   const rawTotal=rolls.reduce((a,b)=>a+b,0)+Number(modifier||0);
+   const details=[];
+   targets.forEach(index=>{
+     const half=state.results[index]==='success';
+     const damage=half?Math.floor(rawTotal/2):rawTotal;
+     const result=applyPlayerDamage(index,damage,{refresh:false,tvFlash:false});
+     combatDamageState[id+'_'+index]={actual:damage};saveCombatDamageState();
+     details.push(escapeHTML(combatPlayers[index]?.name||'Joueur')+' : <b>'+damage+'</b>'+(half?' 🟢 demi-dégâts':' 🔴 dégâts complets')+' → 🛡️ -'+result.tempLost+' / ❤️ -'+result.hpLost);
+   });
+   saveCombatPlayers();saveCombatDamageState();
+   if(out)out.innerHTML='<b>'+rawTotal+'</b> <span class="inline-dice-detail">('+rolls.join(' + ')+') — jet partagé</span><div class="combat-auto-damage">'+details.join('<br>')+'</div>';
+   sendPlayerHPToTV(dungeonTVMode?'persistent':'flash',dungeonTVMode?0:4000);
+   return;
+ }
  const wrap=button?.closest('.combat-attack-roll');
  const attackId=String(button?.dataset?.attackId||wrap?.dataset?.combatAttackKey||'').trim();
  const attack=combatAttackState[attackId?currentOpenFicheId+'::'+attackId:currentOpenFicheId];
