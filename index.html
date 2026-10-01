@@ -947,15 +947,23 @@ function rollInlineDice(count,sides,modifier,button){
  if(button?.dataset?.clawBonusPair){
    const id=currentOpenFicheId;
    const pair=String(button?.dataset?.clawBonusPair||'').trim();
-   const matchingKeys=Object.keys(doubleClawState).filter(k=>k.startsWith(id+'_'+pair+'_'));
-   const cleanKey=matchingKeys.length?matchingKeys[matchingKeys.length-1]:'';
-   const dc=doubleClawState[cleanKey];
    const out=button?.parentElement?.querySelector('.inline-dice-result');
-   if(id===''||!cleanKey||!dc||dc.targetIndex===null||!dc.griffe1||!dc.griffe2){
+   const buttons=Array.from(button?.closest('p')?.querySelectorAll('.combat-attack-roll button[data-claw-pair]')||[]).filter(function(b){return String(b.dataset.clawPair||'').trim()===pair;});
+   const states=buttons.map(function(b){
+     const key=String(b.dataset.attackId||'').trim();
+     return key?combatAttackState[id+'::'+key]:null;
+   }).filter(Boolean);
+   const s1=states.find(function(s){return Number(s.targetIndex)>=0&&s.hit;});
+   const s2=states.find(function(s){return s!==s1&&Number(s.targetIndex)>=0&&s.hit;});
+   const sameTarget=!!s1&&!!s2&&Number(s1.targetIndex)===Number(s2.targetIndex);
+   if(!sameTarget){
      if(out)out.innerHTML='<b>⚠️ Les 2 Griffes doivent avoir touché la même cible.</b>';
      return;
    }
-   const saveResult=doubleClawSaveState[cleanKey];
+   const cleanKey=id+'_'+pair+'_'+Number(s1.targetIndex);
+   doubleClawState[cleanKey]={targetIndex:Number(s1.targetIndex),griffe1:true,griffe2:true};
+   saveDoubleClawState();
+
    if(!saveResult){
      if(out)out.innerHTML='<b>⚠️ Effectue le JS Constitution DD 15 avant de lancer le bonus.</b>';
      return;
