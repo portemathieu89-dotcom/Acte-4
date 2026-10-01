@@ -1481,7 +1481,7 @@ function setCombatAoeTargetFromInput(input){
 }
 function setCombatAOEResult(id,aoeId,index,result){
  const s=getCombatAoeState(id,aoeId);
- if(!s.targets.includes(index))return;
+ if(!s.targets.includes(index))s.targets.push(index);
  s.results[index]=result;
  saveCombatAoeSaveState();
  const controls=Array.from(document.querySelectorAll('.combat-aoe-controls')).find(function(el){
